@@ -1,0 +1,5 @@
+import type { Metadata } from "next";
+import { ContactForm } from "@/components/contact-form";
+import { PageHero } from "@/components/page-hero";
+export const metadata: Metadata = { title: "Contact" };
+export default function ContactPage() { return <><PageHero eyebrow="Contact" title="Start a conversation."><p>Ask about membership, events, ideas or getting involved. The contact system is intentionally in validation-only mode for this initial release.</p></PageHero><section className="site-shell grid gap-10 py-16 lg:grid-cols-[.8fr_1.2fr] sm:py-24"><div><h2 className="text-2xl font-semibold text-white">Get in touch</h2><p className="mt-4 leading-8 text-slate-300">We’ll publish confirmed channels once they are approved by the society. Until then, this form demonstrates the planned, server-side validation flow without collecting personal information.</p><div className="notice-block mt-8 text-sm leading-6 text-slate-400">Please do not send passwords, security-sensitive details or personal data through this form.</div></div><ContactForm /></section></> }

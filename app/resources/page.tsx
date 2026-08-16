@@ -1,0 +1,5 @@
+import type { Metadata } from "next";
+import { PageHero } from "@/components/page-hero";
+import { resources } from "@/lib/site-data";
+export const metadata: Metadata = { title: "Resources" };
+export default function ResourcesPage() { return <><PageHero eyebrow="Resources" title="A considered place to start learning."><p>These resource areas will develop with the society. They prioritise reliable learning, ethical practice and useful career foundations.</p></PageHero><section className="site-shell py-16 sm:py-24"><div className="grid gap-5 md:grid-cols-2">{resources.map((resource) => <article className="card" key={resource.title}><span className="pill">{resource.tag}</span><h2 className="mt-4 text-xl font-semibold text-white">{resource.title}</h2><p className="mt-3 text-slate-300">{resource.description}</p></article>)}</div><p className="mt-8 text-sm text-slate-400">External resource links have intentionally not been added until they can be reviewed and maintained by the society.</p></section></> }
