@@ -1,6 +1,6 @@
 # GreCyberSec
 
-The public website for GreCyberSec, the Cybersecurity Society at the University of Greenwich. It presents the society, workshops, events, CTF activities, projects, committee roles and resources.
+The public website for GreCyberSec, the Cybersecurity Society at the University of Greenwich. It presents the society, events, projects, committee roles and resources.
 
 ## Stack
 
@@ -8,7 +8,7 @@ The public website for GreCyberSec, the Cybersecurity Society at the University 
 - Tailwind CSS
 - ESLint
 - Supabase Auth email/password authentication using `@supabase/ssr` cookie sessions
-- Static TypeScript content; no custom database tables, social login, courses or admin dashboard
+- Supabase-backed member learning system with RLS-protected progress and quizzes
 
 ## Local development
 
@@ -60,17 +60,22 @@ Never commit `.env.local`, API keys, tokens, passwords or service-role credentia
 
 Registration uses Cloudflare Turnstile. In the Cloudflare dashboard, add `localhost` to the widget's allowed hostnames for local development and add the production hostname before deployment. Put the widget site key in `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and its secret key in `TURNSTILE_SECRET_KEY`; the latter is sent only from the server to Cloudflare's Siteverify endpoint and must never use a `NEXT_PUBLIC_` name.
 
-## Learning system migration
+## Learning system migrations
 
-The member learning area needs the migration in `supabase/migrations/20260816190000_create_learning_system.sql`. Apply it before visiting `/courses`:
+The member learning area needs both migrations, in filename order, before visiting `/courses`:
 
 ```bash
 supabase db push
 ```
 
-Or, in **Supabase Dashboard → SQL Editor**, paste and run the migration file once. It creates the course content, per-user progress and quiz tables, sample content for the three initial courses, indexes, constraints, RLS policies and the `submit_quiz_attempt` scoring function.
+Or, in **Supabase Dashboard → SQL Editor**, run these files in order:
 
-The migration gives authenticated members read-only access to published content and limits lesson progress, attempts and answers to their own `auth.users.id`. MCQ answer keys are stored in a private table and are scored inside the database function, so correct answers and client-supplied scores are never trusted. Written and code responses are stored for review; they are never executed by the application.
+1. `supabase/migrations/20260816190000_create_learning_system.sql`
+2. `supabase/migrations/20260827110000_replace_sample_courses_with_networking_course.sql`
+
+The second migration removes only the three disposable sample courses and their dependent sample progress and quiz attempts; it never deletes `auth.users` or unrelated course data. It creates the production **Networking for Cybersecurity** course, module quizzes, safe Markdown lesson content, course metadata and post-submission quiz feedback.
+
+The migrations give authenticated members read-only access to published content and limit lesson progress, attempts and answers to their own `auth.users.id`. MCQ answer keys (and feedback explanations) are stored in a private table and are scored inside the database function, so correct answers and client-supplied scores are never trusted. Written responses are stored for review; they are never executed by the application.
 
 ## Architecture and security
 
