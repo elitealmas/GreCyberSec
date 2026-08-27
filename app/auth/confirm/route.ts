@@ -7,17 +7,29 @@ const supportedTypes = new Set<EmailOtpType>(["email", "recovery"]);
 
 export async function GET(request: NextRequest) {
   if (!isSupabaseConfigured()) return NextResponse.redirect(getSiteUrl("/login?message=configuration"));
+  const code = request.nextUrl.searchParams.get("code");
   const tokenHash = request.nextUrl.searchParams.get("token_hash");
   const type = request.nextUrl.searchParams.get("type") as EmailOtpType | null;
   const failureUrl = getSiteUrl("/login?message=confirmation-error");
+  const supabase = await createClient();
+
+  if (code) {
+    try {
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error) return NextResponse.redirect(getSiteUrl("/auth/confirmed"));
+    } catch {
+      // Invalid, expired, or already-used codes follow the same safe failure path.
+    }
+
+    return NextResponse.redirect(failureUrl);
+  }
 
   if (!tokenHash || !type || !supportedTypes.has(type)) {
     return NextResponse.redirect(failureUrl);
   }
 
-  const supabase = await createClient();
   const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
   if (error) return NextResponse.redirect(failureUrl);
 
-  return NextResponse.redirect(type === "recovery" ? getSiteUrl("/update-password") : "http://localhost:3000/auth/confirmed");
+  return NextResponse.redirect(type === "recovery" ? getSiteUrl("/update-password") : getSiteUrl("/auth/confirmed"));
 }

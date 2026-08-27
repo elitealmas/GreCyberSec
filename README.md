@@ -36,6 +36,8 @@ Copy `.env.example` to `.env.local` and set the following values from the Supaba
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=
+TURNSTILE_SECRET_KEY=
 ```
 
 Values prefixed `NEXT_PUBLIC_` are visible to browsers and must never be secrets. The publishable key is safe for this purpose; a service-role or secret key must never be added to the project.
@@ -53,6 +55,22 @@ For the server-side token flow, update the templates under **Authentication → 
 ```
 
 Never commit `.env.local`, API keys, tokens, passwords or service-role credentials.
+
+## Turnstile registration protection
+
+Registration uses Cloudflare Turnstile. In the Cloudflare dashboard, add `localhost` to the widget's allowed hostnames for local development and add the production hostname before deployment. Put the widget site key in `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and its secret key in `TURNSTILE_SECRET_KEY`; the latter is sent only from the server to Cloudflare's Siteverify endpoint and must never use a `NEXT_PUBLIC_` name.
+
+## Learning system migration
+
+The member learning area needs the migration in `supabase/migrations/20260816190000_create_learning_system.sql`. Apply it before visiting `/courses`:
+
+```bash
+supabase db push
+```
+
+Or, in **Supabase Dashboard → SQL Editor**, paste and run the migration file once. It creates the course content, per-user progress and quiz tables, sample content for the three initial courses, indexes, constraints, RLS policies and the `submit_quiz_attempt` scoring function.
+
+The migration gives authenticated members read-only access to published content and limits lesson progress, attempts and answers to their own `auth.users.id`. MCQ answer keys are stored in a private table and are scored inside the database function, so correct answers and client-supplied scores are never trusted. Written and code responses are stored for review; they are never executed by the application.
 
 ## Architecture and security
 

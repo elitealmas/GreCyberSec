@@ -44,5 +44,6 @@ export const navigation = [
   { href: "/projects", label: "Projects" },
   { href: "/committee", label: "Committee" },
   { href: "/resources", label: "Resources" },
+  { href: "/courses", label: "Courses" },
   { href: "/contact", label: "Contact" },
 ];

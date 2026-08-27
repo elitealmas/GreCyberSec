@@ -2,18 +2,13 @@
 
 import { redirect } from "next/navigation";
 import { validateCredentials, validateEmail, validateNewPassword } from "@/lib/auth-validation";
+import { registrationFailureMessage } from "@/lib/registration-errors";
+import { getSiteUrl } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 function go(path: string, message: string): never {
   redirect(`${path}?message=${message}`);
-}
-
-function registrationFailureMessage(error: { message: string; code?: string }) {
-  const normalised = error.message.toLowerCase();
-  if (error.code === "over_email_send_rate_limit" || normalised.includes("rate limit")) return "email-rate-limited";
-  if (normalised.includes("signups are disabled") || normalised.includes("provider is disabled")) return "registration-disabled";
-  if (normalised.includes("sending confirmation") || normalised.includes("sending email")) return "email-delivery-unavailable";
-  return "registration-unavailable";
 }
 
 export async function register(formData: FormData) {
@@ -23,10 +18,19 @@ export async function register(formData: FormData) {
     go("/register", password === "mismatch" ? "password-mismatch" : "invalid-registration");
   }
 
+  const token = formData.get("turnstileToken");
+  if (typeof token !== "string" || !(await verifyTurnstileToken(token, "register"))) {
+    go("/register", "turnstile-failed");
+  }
+
   let message = "check-email";
   try {
     const supabase = await createClient();
-    const { error } = await supabase.auth.signUp({ email: credentials.email, password });
+    const { error } = await supabase.auth.signUp({
+      email: credentials.email,
+      password,
+      options: { emailRedirectTo: getSiteUrl("/auth/confirm") },
+    });
     if (error) {
       console.error("Supabase registration failed", { status: error.status, code: error.code });
       message = registrationFailureMessage(error);
@@ -42,6 +46,11 @@ export async function register(formData: FormData) {
 export async function login(formData: FormData) {
   const credentials = validateCredentials(formData);
   if (!credentials) go("/login", "invalid-login");
+
+  const token = formData.get("turnstileToken");
+  if (typeof token !== "string" || !(await verifyTurnstileToken(token, "login"))) {
+    go("/login", "turnstile-failed");
+  }
 
   let loginFailed = false;
   try {
