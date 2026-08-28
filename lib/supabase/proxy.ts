@@ -11,10 +11,11 @@ export async function updateSession(request: NextRequest, requestHeaders = reque
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet, responseHeaders) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request: { headers: requestHeaders } });
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        Object.entries(responseHeaders).forEach(([name, value]) => response.headers.set(name, value));
       },
     },
   });
