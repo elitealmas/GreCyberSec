@@ -42,16 +42,16 @@ TURNSTILE_SECRET_KEY=
 
 Values prefixed `NEXT_PUBLIC_` are visible to browsers and must never be secrets. The publishable key is safe for this purpose; a service-role or secret key must never be added to the project.
 
-In Supabase, enable Email authentication and enable **Confirm email**. Under **Authentication → URL Configuration**, set the Site URL to `http://localhost:3000` for local development and add `http://localhost:3000/**` to Redirect URLs. For production, set the Site URL and an exact Redirect URL to the deployed HTTPS domain.
+In Supabase, enable Email authentication and enable **Confirm email**. Under **Authentication → URL Configuration**, use the public production URL as the Site URL and allow the exact `/auth/confirm` callback URL for each environment. For example, add `http://localhost:3000/auth/confirm` for local development and `https://www.grecybersec.co.uk/auth/confirm` for production.
 
-For the server-side token flow, update the templates under **Authentication → Email Templates**. During local development, a successful email confirmation redirects to `http://localhost:3000/auth/confirmed`:
+For the server-side token flow, update the **Confirm signup** and **Reset password** templates under **Authentication → Email Templates**. The application supplies the full callback path as `RedirectTo`, so use these URLs:
 
 ```html
 <!-- Confirm signup -->
-<a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">Confirm email address</a>
+<a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email">Confirm email address</a>
 
 <!-- Reset password -->
-<a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery">Reset password</a>
+<a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery">Reset password</a>
 ```
 
 Never commit `.env.local`, API keys, tokens, passwords or service-role credentials.
@@ -62,7 +62,7 @@ Registration uses Cloudflare Turnstile. In the Cloudflare dashboard, add `localh
 
 ## Learning system migrations
 
-The member learning area needs both migrations, in filename order, before visiting `/courses`:
+The member learning area needs all three migrations, in filename order, before visiting `/courses`:
 
 ```bash
 supabase db push
@@ -72,8 +72,9 @@ Or, in **Supabase Dashboard → SQL Editor**, run these files in order:
 
 1. `supabase/migrations/20260816190000_create_learning_system.sql`
 2. `supabase/migrations/20260827110000_replace_sample_courses_with_networking_course.sql`
+3. `supabase/migrations/20260828210000_require_published_course_for_quiz_attempts.sql`
 
-The second migration removes only the three disposable sample courses and their dependent sample progress and quiz attempts; it never deletes `auth.users` or unrelated course data. It creates the production **Networking for Cybersecurity** course, module quizzes, safe Markdown lesson content, course metadata and post-submission quiz feedback.
+The second migration removes only the three disposable sample courses and their dependent sample progress and quiz attempts; it never deletes `auth.users` or unrelated course data. It creates the production **Networking for Cybersecurity** course, module quizzes, safe Markdown lesson content, course metadata and post-submission quiz feedback. The third migration changes no data; it prevents the scoring RPC from accepting an attempt for a quiz whose parent course is unpublished.
 
 The migrations give authenticated members read-only access to published content and limit lesson progress, attempts and answers to their own `auth.users.id`. MCQ answer keys (and feedback explanations) are stored in a private table and are scored inside the database function, so correct answers and client-supplied scores are never trusted. Written responses are stored for review; they are never executed by the application.
 
@@ -85,11 +86,11 @@ The site is mostly Server Components with a small client component only for cont
 
 The contact form validates all fields in a server action, enforces length limits, uses a honeypot field and never stores or sends submissions. It is intentionally a validation-only demonstration until an approved contact delivery service and rate-limiting approach are in place.
 
-`next.config.ts` applies a CSP, HSTS, clickjacking protections, `nosniff`, a restrictive referrer policy and a restrictive permissions policy. The CSP permits only same-origin scripts, styles and connections; it includes no third-party hosts or unsafe CSP exceptions. Revisit it before adding integrations, analytics, fonts or images.
+`next.config.ts` applies HSTS, clickjacking protections, `nosniff`, a restrictive referrer policy and a restrictive permissions policy. `proxy.ts` applies a per-request nonce-based CSP in production, with the explicit Cloudflare Turnstile host allowed for its script, frame and connection. Revisit it before adding integrations, analytics, fonts or images.
 
 ## Deployment
 
-The project is compatible with Vercel. Connect the GitHub repository, supply `NEXT_PUBLIC_SITE_URL` in the deployment configuration if required, and deploy using the build command `npm run build`.
+The project is compatible with Vercel. Connect the GitHub repository, set `NEXT_PUBLIC_SITE_URL=https://www.grecybersec.co.uk` in the Production environment, and deploy using the build command `npm run build`.
 
 For Cloudflare, point DNS to the deployment, enforce HTTPS/TLS, use a managed WAF and rate limits where appropriate, and review caching rules after deployment. Cloudflare complements but does not replace secure application code.
 
