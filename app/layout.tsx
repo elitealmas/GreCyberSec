@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import "./globals.css";
-import { CursorTrail } from "@/components/cursor-trail";
 import { AppearancePreferences } from "@/components/member-menu";
 import { SiteIntro } from "@/components/site-intro";
 import { SiteFooter } from "@/components/site-footer";
@@ -18,5 +17,5 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   await connection();
 
-  return <html lang="en-GB"><body><AppearancePreferences /><SiteIntro /><CursorTrail /><SiteHeader /><main id="main-content">{children}</main><SiteFooter /></body></html>;
+  return <html lang="en-GB"><body><AppearancePreferences /><SiteIntro /><SiteHeader /><main id="main-content">{children}</main><SiteFooter /></body></html>;
 }
