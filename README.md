@@ -44,7 +44,19 @@ Values prefixed `NEXT_PUBLIC_` are visible to browsers and must never be secrets
 
 In Supabase, enable Email authentication and enable **Confirm email**. Under **Authentication → URL Configuration**, use the public production URL as the Site URL and allow the exact `/auth/confirm` callback URL for each environment. For example, add `http://localhost:3000/auth/confirm` for local development and `https://www.grecybersec.co.uk/auth/confirm` for production.
 
-For the server-side token flow, update the **Confirm signup** and **Reset password** templates under **Authentication → Email Templates**. The application supplies the full callback path as `RedirectTo`, so use these URLs:
+For authentication emails, do not hard-code `/auth/confirmed` in any Supabase template. The application supplies the correct callback as `RedirectTo`: signup uses `/auth/confirm` and password recovery uses `/auth/confirm?next=recovery`.
+
+The standard Supabase email templates work with this application and are the recommended option:
+
+```html
+<!-- Confirm signup -->
+<a href="{{ .ConfirmationURL }}">Confirm email address</a>
+
+<!-- Reset password -->
+<a href="{{ .ConfirmationURL }}">Reset password</a>
+```
+
+If you intentionally use the alternative server-side token-hash template flow, use these URLs instead. Do not mix the two template styles:
 
 ```html
 <!-- Confirm signup -->
