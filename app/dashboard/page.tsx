@@ -14,11 +14,13 @@ export default async function DashboardPage() {
   if (!isSupabaseConfigured()) redirect("/login?message=configuration");
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
-  if (error || !data?.claims) redirect("/login");
-  const email = typeof data.claims.email === "string" ? data.claims.email : "your confirmed email";
+  const claims = data?.claims;
+  const userId = typeof claims?.sub === "string" ? claims.sub : null;
+  if (error || !userId) redirect("/login");
+  const email = typeof claims?.email === "string" ? claims.email : "your confirmed email";
   let courses: Awaited<ReturnType<typeof getCoursesWithProgress>> | null = null;
   try {
-    courses = await getCoursesWithProgress(supabase);
+    courses = await getCoursesWithProgress(supabase, userId);
   } catch {
     // The member dashboard stays available if the learning migration has not been applied yet.
   }

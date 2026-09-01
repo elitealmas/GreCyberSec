@@ -51,7 +51,7 @@ For the server-side token flow, update the **Confirm signup** and **Reset passwo
 <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email">Confirm email address</a>
 
 <!-- Reset password -->
-<a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery">Reset password</a>
+<a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery">Reset password</a>
 ```
 
 Never commit `.env.local`, API keys, tokens, passwords or service-role credentials.
@@ -80,11 +80,11 @@ The migrations give authenticated members read-only access to published content 
 
 ## Architecture and security
 
-The site is mostly Server Components with a small client component only for contact-form status. Content is static in `lib/site-data.ts`, keeping the attack surface small. Supabase Auth is used only for email/password identity management; passwords are never stored or hashed by this application.
+The site uses Server Components for its public content and small client components only where browser interaction is necessary. Public content is static in `lib/site-data.ts`, keeping the attack surface small. Supabase Auth is used only for email/password identity management; passwords are never stored or hashed by this application.
 
-`lib/supabase/client.ts` and `lib/supabase/server.ts` create browser and server clients with `@supabase/ssr`. `proxy.ts` refreshes cookie sessions with `getClaims()`. The `/dashboard` page independently validates claims server-side, and the confirmation route accepts only Supabase `email` and `recovery` token types before redirecting to fixed internal paths.
+`lib/supabase/client.ts` and `lib/supabase/server.ts` create browser and server clients with `@supabase/ssr`. `proxy.ts` refreshes cookie sessions with `getClaims()` and redirects unauthenticated requests for member routes before those routes render. Member pages independently validate claims server-side as defence in depth. The confirmation route accepts only Supabase `email` and `recovery` token types before redirecting to fixed internal paths. Password-reset requests include an allow-listed `next=recovery` intent so both PKCE and token-hash callbacks reach `/update-password`.
 
-The contact form validates all fields in a server action, enforces length limits, uses a honeypot field and never stores or sends submissions. It is intentionally a validation-only demonstration until an approved contact delivery service and rate-limiting approach are in place.
+The contact page intentionally uses the GreCyberSec WhatsApp QR community channel. No contact form or contact-message storage is implemented.
 
 `next.config.ts` applies HSTS, clickjacking protections, `nosniff`, a restrictive referrer policy and a restrictive permissions policy. `proxy.ts` applies a per-request nonce-based CSP in production, with the explicit Cloudflare Turnstile host allowed for its script, frame and connection. Revisit it before adding integrations, analytics, fonts or images.
 

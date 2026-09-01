@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseConfig, isSupabaseConfigured } from "@/lib/supabase/config";
 
 export async function updateSession(request: NextRequest, requestHeaders = request.headers) {
-  if (!isSupabaseConfigured()) return NextResponse.next({ request: { headers: requestHeaders } });
+  if (!isSupabaseConfigured()) return { response: NextResponse.next({ request: { headers: requestHeaders } }), userId: null };
   let response = NextResponse.next({ request: { headers: requestHeaders } });
   const { url, publishableKey } = getSupabaseConfig();
   const supabase = createServerClient(url, publishableKey, {
@@ -21,6 +21,7 @@ export async function updateSession(request: NextRequest, requestHeaders = reque
   });
 
   // getClaims validates the access token and refreshes it when appropriate.
-  await supabase.auth.getClaims();
-  return response;
+  const { data, error } = await supabase.auth.getClaims();
+  const userId = !error && typeof data?.claims?.sub === "string" ? data.claims.sub : null;
+  return { response, userId };
 }
