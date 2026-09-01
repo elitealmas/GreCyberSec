@@ -114,31 +114,31 @@ function normaliseCourse(raw: RawCourse, completedLessonIds: Set<string>, quizze
   };
 }
 
-async function completedLessonIds(supabase: Supabase, lessonIds: string[]) {
+async function completedLessonIds(supabase: Supabase, userId: string, lessonIds: string[]) {
   if (lessonIds.length === 0) return new Set<string>();
-  const { data, error } = await supabase.from("lesson_progress").select("lesson_id").in("lesson_id", lessonIds);
+  const { data, error } = await supabase.from("lesson_progress").select("lesson_id").eq("user_id", userId).in("lesson_id", lessonIds);
   if (error) throw new Error("Learning progress is unavailable.");
   return new Set((data ?? []).map((progress) => progress.lesson_id));
 }
 
 const courseSelect = "id, slug, title, description, difficulty, estimated_hours, course_modules(id, slug, title, summary, position, lessons(id, slug, title, summary, content, position))";
 
-export async function getCoursesWithProgress(supabase: Supabase) {
+export async function getCoursesWithProgress(supabase: Supabase, userId: string) {
   const { data, error } = await supabase.from("courses").select(courseSelect).eq("is_published", true).order("title");
   if (error) throw new Error("Course content is unavailable.");
   const rawCourses = (data ?? []) as unknown as RawCourse[];
   const lessonIds = rawCourses.flatMap((course) => (course.course_modules ?? []).flatMap((module) => (module.lessons ?? []).map((lesson) => lesson.id)));
-  const completed = await completedLessonIds(supabase, lessonIds);
+  const completed = await completedLessonIds(supabase, userId, lessonIds);
   return rawCourses.map((course) => normaliseCourse(course, completed));
 }
 
-export async function getCourseWithProgress(supabase: Supabase, slug: string) {
+export async function getCourseWithProgress(supabase: Supabase, userId: string, slug: string) {
   const { data, error } = await supabase.from("courses").select(courseSelect).eq("slug", slug).eq("is_published", true).maybeSingle();
   if (error) throw new Error("Course content is unavailable.");
   if (!data) return null;
   const rawCourse = data as unknown as RawCourse;
   const lessonIds = (rawCourse.course_modules ?? []).flatMap((module) => (module.lessons ?? []).map((lesson) => lesson.id));
-  const [completed, quizzes] = await Promise.all([completedLessonIds(supabase, lessonIds), getQuizSummaries(supabase, rawCourse.id)]);
+  const [completed, quizzes] = await Promise.all([completedLessonIds(supabase, userId, lessonIds), getQuizSummaries(supabase, userId, rawCourse.id)]);
   return normaliseCourse(rawCourse, completed, quizzes);
 }
 
@@ -193,7 +193,7 @@ export async function getQuizById(supabase: Supabase, quizId: string) {
   return data as { id: string; course_id: string; module_id: string | null } | null;
 }
 
-async function getQuizSummaries(supabase: Supabase, courseId: string): Promise<QuizSummary[]> {
+async function getQuizSummaries(supabase: Supabase, userId: string, courseId: string): Promise<QuizSummary[]> {
   const { data, error } = await supabase
     .from("quizzes")
     .select("id, title, passing_score, module_id")
@@ -205,6 +205,7 @@ async function getQuizSummaries(supabase: Supabase, courseId: string): Promise<Q
   const { data: attempts, error: attemptsError } = await supabase
     .from("quiz_attempts")
     .select("id, quiz_id, score, passed, submitted_at")
+    .eq("user_id", userId)
     .in("quiz_id", quizzes.map((quiz) => quiz.id))
     .order("submitted_at", { ascending: false });
   if (attemptsError) throw new Error("Quiz attempts are unavailable.");
@@ -215,20 +216,22 @@ async function getQuizSummaries(supabase: Supabase, courseId: string): Promise<Q
   }));
 }
 
-export async function getQuizAttempts(supabase: Supabase, quizId: string) {
+export async function getQuizAttempts(supabase: Supabase, userId: string, quizId: string) {
   const { data, error } = await supabase
     .from("quiz_attempts")
     .select("id, score, passed, submitted_at")
+    .eq("user_id", userId)
     .eq("quiz_id", quizId)
     .order("submitted_at", { ascending: false });
   if (error) throw new Error("Quiz attempts are unavailable.");
   return (data ?? []) as Array<{ id: string; score: number; passed: boolean; submitted_at: string }>;
 }
 
-export async function getQuizAttempt(supabase: Supabase, attemptId: string) {
+export async function getQuizAttempt(supabase: Supabase, userId: string, attemptId: string) {
   const { data, error } = await supabase
     .from("quiz_attempts")
     .select("id, quiz_id, score, correct_answers, scoreable_questions, passed, submitted_at, quiz_answers(response, is_correct, feedback, quiz_questions(prompt, question_type, position))")
+    .eq("user_id", userId)
     .eq("id", attemptId)
     .maybeSingle();
   if (error) throw new Error("Quiz attempt is unavailable.");

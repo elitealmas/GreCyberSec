@@ -1,27 +1,16 @@
 import Link from "next/link";
 import { CourseProgress } from "@/components/course-progress";
-import { getCoursesWithProgress } from "@/lib/courses";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { createClient } from "@/lib/supabase/server";
+import { getCoursesWithProgress, requireMemberSession } from "@/lib/courses";
 
 export const metadata = { title: "Courses", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default async function CoursesPage() {
-  let supabase: Awaited<ReturnType<typeof createClient>> | null = null;
-  if (isSupabaseConfigured()) {
-    const client = await createClient();
-    const { data, error } = await client.auth.getClaims();
-    if (!error && data?.claims) supabase = client;
-  }
-
-  if (!supabase) {
-    return <section className="site-shell min-h-[calc(100vh-22rem)] py-16 sm:py-24"><p className="eyebrow">Member learning space</p><article className="notice-panel mt-6 max-w-2xl"><h1 className="text-3xl font-semibold text-white">Courses are for members.</h1><p className="mt-4 leading-7 text-slate-300">You need to log in to access courses.</p><Link className="button button-primary mt-7" href="/login">Log in <span aria-hidden="true">→</span></Link></article></section>;
-  }
+  const { supabase, userId } = await requireMemberSession();
 
   let courses: Awaited<ReturnType<typeof getCoursesWithProgress>>;
   try {
-    courses = await getCoursesWithProgress(supabase);
+    courses = await getCoursesWithProgress(supabase, userId);
   } catch {
     return <section className="site-shell min-h-[calc(100vh-22rem)] py-16 sm:py-24"><p className="eyebrow">Member learning space</p><article className="notice-panel mt-6 max-w-2xl"><h1 className="text-3xl font-semibold text-white">Courses are nearly ready.</h1><p className="mt-4 leading-7 text-slate-300">Course content is temporarily unavailable. Please try again later, or contact the society if the problem continues.</p></article></section>;
   }

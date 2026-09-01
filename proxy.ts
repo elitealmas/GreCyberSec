@@ -1,4 +1,5 @@
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { protectedRouteRedirect } from "@/lib/protected-routes";
 import { updateSession } from "@/lib/supabase/proxy";
 
 function createContentSecurityPolicy(nonce?: string) {
@@ -33,7 +34,16 @@ export async function proxy(request: NextRequest) {
   requestHeaders.set("Content-Security-Policy", contentSecurityPolicy);
   if (nonce) requestHeaders.set("x-nonce", nonce);
 
-  const response = await updateSession(request, requestHeaders);
+  const { response: sessionResponse, userId } = await updateSession(request, requestHeaders);
+  const protectedRedirect = protectedRouteRedirect(request.nextUrl.pathname);
+  if (protectedRedirect && !userId) {
+    const response = NextResponse.redirect(new URL(protectedRedirect, request.url));
+    sessionResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+    response.headers.set("Content-Security-Policy", contentSecurityPolicy);
+    return response;
+  }
+
+  const response = sessionResponse;
   response.headers.set("Content-Security-Policy", contentSecurityPolicy);
   return response;
 }

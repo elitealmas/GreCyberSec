@@ -7,11 +7,11 @@ export const dynamic = "force-dynamic";
 
 export default async function CoursePage({ params }: { params: Promise<{ courseSlug: string }> }) {
   const { courseSlug } = await params;
-  const { supabase } = await requireMemberSession();
-  const course = await getCourseWithProgress(supabase, courseSlug);
+  const { supabase, userId } = await requireMemberSession();
+  const course = await getCourseWithProgress(supabase, userId, courseSlug);
   if (!course) notFound();
   const quiz = await getQuizForCourse(supabase, course.id);
-  const attempts = quiz ? await getQuizAttempts(supabase, quiz.id) : [];
+  const attempts = quiz ? await getQuizAttempts(supabase, userId, quiz.id) : [];
 
   return <section className="site-shell min-h-[calc(100vh-22rem)] py-16 sm:py-24">
     <Link className="text-link" href="/courses">← All courses</Link>

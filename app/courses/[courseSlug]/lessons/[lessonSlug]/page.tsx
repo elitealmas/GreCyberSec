@@ -12,8 +12,8 @@ export const dynamic = "force-dynamic";
 export default async function LessonPage({ params, searchParams }: { params: Promise<{ courseSlug: string; lessonSlug: string }>; searchParams: Promise<{ message?: string }> }) {
   const { courseSlug, lessonSlug } = await params;
   const { message } = await searchParams;
-  const { supabase } = await requireMemberSession();
-  const course = await getCourseWithProgress(supabase, courseSlug);
+  const { supabase, userId } = await requireMemberSession();
+  const course = await getCourseWithProgress(supabase, userId, courseSlug);
   if (!course) notFound();
   const lessons = course.modules.flatMap((module) => module.lessons);
   const lessonIndex = lessons.findIndex((lesson) => lesson.slug === lessonSlug);

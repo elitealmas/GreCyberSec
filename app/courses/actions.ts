@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCourseWithProgress, getQuizById, getQuizForCourse, getQuizForModule, requireMemberSession } from "@/lib/courses";
+import { hasValidQuizSubmissionInput, quizMatchesCourseContext } from "@/lib/quiz-validation";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -24,7 +25,7 @@ export async function setLessonCompletion(formData: FormData) {
   if (!slugPattern.test(courseSlug) || !slugPattern.test(lessonSlug) || !uuidPattern.test(lessonId)) redirect("/courses");
 
   const { supabase, userId } = await requireMemberSession();
-  const course = await getCourseWithProgress(supabase, courseSlug);
+  const course = await getCourseWithProgress(supabase, userId, courseSlug);
   const lessonExists = course?.modules.some((module) => module.lessons.some((lesson) => lesson.id === lessonId && lesson.slug === lessonSlug));
   if (!course || !lessonExists) redirect("/courses");
 
@@ -48,14 +49,14 @@ export async function submitQuizAttempt(formData: FormData) {
   const courseSlug = value(formData, "courseSlug");
   const quizId = value(formData, "quizId");
   const moduleSlug = value(formData, "moduleSlug");
-  if (!slugPattern.test(courseSlug) || !uuidPattern.test(quizId) || (moduleSlug && !slugPattern.test(moduleSlug))) redirect("/courses");
+  if (!hasValidQuizSubmissionInput(courseSlug, quizId, moduleSlug)) redirect("/courses");
 
-  const { supabase } = await requireMemberSession();
-  const course = await getCourseWithProgress(supabase, courseSlug);
+  const { supabase, userId } = await requireMemberSession();
+  const course = await getCourseWithProgress(supabase, userId, courseSlug);
   if (!course) redirect("/courses");
   const quizReference = await getQuizById(supabase, quizId);
   const courseModule = moduleSlug ? course.modules.find((item) => item.slug === moduleSlug) : null;
-  if (!quizReference || quizReference.course_id !== course.id || quizReference.module_id !== (courseModule?.id ?? null)) redirect(coursePath(courseSlug));
+  if (!quizMatchesCourseContext({ courseId: course.id, quiz: quizReference, moduleSlug, moduleId: courseModule?.id ?? null })) redirect(coursePath(courseSlug));
 
   const quiz = courseModule ? await getQuizForModule(supabase, course.id, courseModule.id) : await getQuizForCourse(supabase, course.id);
   if (!quiz || quiz.id !== quizId) redirect(coursePath(courseSlug));

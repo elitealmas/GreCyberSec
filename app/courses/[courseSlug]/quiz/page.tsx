@@ -10,8 +10,8 @@ export const dynamic = "force-dynamic";
 export default async function QuizPage({ params, searchParams }: { params: Promise<{ courseSlug: string }>; searchParams: Promise<{ message?: string; module?: string }> }) {
   const { courseSlug } = await params;
   const { message, module: moduleSlug } = await searchParams;
-  const { supabase } = await requireMemberSession();
-  const course = await getCourseWithProgress(supabase, courseSlug);
+  const { supabase, userId } = await requireMemberSession();
+  const course = await getCourseWithProgress(supabase, userId, courseSlug);
   if (!course) notFound();
   const courseModule = moduleSlug ? course.modules.find((item) => item.slug === moduleSlug) : null;
   if (moduleSlug && !courseModule) notFound();
