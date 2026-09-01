@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import "./globals.css";
 import { CursorTrail } from "@/components/cursor-trail";
 import { AppearancePreferences } from "@/components/member-menu";
@@ -14,6 +15,8 @@ export const metadata: Metadata = {
   openGraph: { type: "website", siteName: "GreCyberSec", title: "GreCyberSec", description: "Cybersecurity Society — University of Greenwich" },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  await connection();
+
   return <html lang="en-GB"><body><AppearancePreferences /><SiteIntro /><CursorTrail /><SiteHeader /><main id="main-content">{children}</main><SiteFooter /></body></html>;
 }
