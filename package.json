@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/auth-routing.test.mjs tests/quiz-validation.test.mjs tests/registration-errors.test.mjs"
+    "test": "node --experimental-strip-types --test tests/auth-routing.test.mjs tests/password-validation.test.mjs tests/quiz-validation.test.mjs tests/registration-errors.test.mjs"
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.6.0",
