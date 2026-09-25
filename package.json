@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/auth-routing.test.mjs tests/password-validation.test.mjs tests/quiz-validation.test.mjs tests/registration-errors.test.mjs"
+    "test": "node --experimental-strip-types --test tests/auth-routing.test.mjs tests/password-validation.test.mjs tests/quiz-validation.test.mjs tests/registration-errors.test.mjs tests/events.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/oxanium": "^5.3.0",
