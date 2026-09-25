@@ -72,6 +72,7 @@ html.theme-light .partnership-benefits li { border-color: rgba(12, 74, 42, .15);
 html.theme-light .page-hero-inner { background: linear-gradient(110deg, rgba(251, 255, 253, .92), rgba(229, 246, 235, .86)); }
 html.theme-light .section-alt { background: linear-gradient(180deg, rgba(224, 243, 231, .62), rgba(247, 253, 249, .82)); }
 html.theme-light .card, html.theme-light .notice-panel, html.theme-light .course-summary, html.theme-light .course-sidebar, html.theme-light .course-module, html.theme-light .lesson-content, html.theme-light .quiz-question, html.theme-light .quiz-answer, html.theme-light .quiz-result, html.theme-light .auth-card, html.theme-light .contact-qr-panel, html.theme-light .course-card { border-color: rgba(12, 74, 42, .18); background: linear-gradient(145deg, rgba(255, 255, 255, .94), rgba(231, 247, 237, .88)); box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, .78); }
+html.theme-light .legal-robot-card { border-color: rgba(12, 74, 42, .18); background: linear-gradient(145deg, rgba(255, 255, 255, .94), rgba(231, 247, 237, .88)); box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, .78); }
 html.theme-light .pill, html.theme-light .quiz-option { border-color: rgba(12, 74, 42, .18); background: rgba(255, 255, 255, .63); color: #183d28; }
 html.theme-light .quiz-option:hover, html.theme-light .quiz-option:has(input:checked) { border-color: rgba(8, 115, 58, .48); background: rgba(28, 159, 79, .1); }
 html.theme-light .form-label { color: #123c26; }
@@ -228,6 +229,9 @@ html.theme-light .member-menu-robot > b { background: #edf9f1; }
 .committee-robot-terminal { font-size: .62rem; }
 .committee-robot-tracks { display: flex; width: 88%; justify-content: space-between; margin-top: .28rem; border-top: 1.5px solid currentColor; padding: .18rem .25rem 0; }
 .committee-robot-tracks span { width: .3rem; height: .3rem; border-radius: 50%; background: currentColor; box-shadow: 0 0 5px currentColor; }
+.legal-robot-card { display: grid; gap: 1.25rem; position: sticky; top: 6.5rem; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(145deg, rgba(26, 52, 44, .72), rgba(11, 26, 21, .78)); padding: 1.45rem; box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, .04); }
+.legal-robot-card .committee-robot { width: 7rem; }
+.legal-copy { display: grid; gap: .85rem; line-height: 1.75; }
 .notice-panel { position: relative; overflow: hidden; padding: clamp(1.4rem, 4vw, 2rem); }
 .notice-panel::after { position: absolute; width: 12rem; height: 12rem; right: -6rem; bottom: -8rem; border-radius: 50%; content: ""; pointer-events: none; background: rgba(54, 245, 138, .08); filter: blur(24px); }
 .notice-panel > * { position: relative; z-index: 1; }
