@@ -11,7 +11,6 @@ export async function GET(request: Request) {
   const expected = secret ? `Bearer ${secret}` : "";
   if (!secret || secret.length < 32 || Buffer.byteLength(supplied) !== Buffer.byteLength(expected) || !timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))) return new Response("Unauthorized", { status: 401, headers: { "Cache-Control": "no-store" } });
   const event = eventPublicConfig();
-  if (!event) return new Response("Event date is not configured", { status: 503, headers: { "Cache-Control": "no-store" } });
   try {
     const { data, error } = await eventDatabase().rpc("event_cleanup", { p_event: beyondFirewall.id, p_end: event.end.toISOString(), p_retention_days: 7 });
     if (error) throw new Error("Event cleanup failed");
