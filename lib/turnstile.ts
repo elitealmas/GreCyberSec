@@ -1,11 +1,12 @@
 type TurnstileVerification = {
   success?: boolean;
   action?: string;
+  hostname?: string;
 };
 
 const siteverifyUrl = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
-export async function verifyTurnstileToken(token: string, expectedAction: "register" | "login") {
+export async function verifyTurnstileToken(token: string, expectedAction: "register" | "login" | "event-register", expectedHostname?: string) {
   const secret = process.env.TURNSTILE_SECRET_KEY;
   if (!secret || !token || token.length > 2048) return false;
 
@@ -21,7 +22,7 @@ export async function verifyTurnstileToken(token: string, expectedAction: "regis
     if (!response.ok) return false;
 
     const result = await response.json() as TurnstileVerification;
-    return result.success === true && result.action === expectedAction;
+    return result.success === true && result.action === expectedAction && (!expectedHostname || result.hostname === expectedHostname);
   } catch {
     return false;
   }
