@@ -30,7 +30,7 @@ npm audit
 
 ## Environment variables
 
-Copy `.env.example` to `.env.local` and set the following values from the Supabase project Connect dialog:
+Copy `.env.example` to `.env.local`. The event flow reuses the existing Supabase, Turnstile and Resend projects:
 
 ```bash
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
@@ -38,9 +38,13 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=
 TURNSTILE_SECRET_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+RESEND_API_KEY=
+EVENT_EMAIL_FROM=
+CRON_SECRET=
 ```
 
-Values prefixed `NEXT_PUBLIC_` are visible to browsers and must never be secrets. The publishable key is safe for this purpose; a service-role or secret key must never be added to the project.
+Values prefixed `NEXT_PUBLIC_` are visible to browsers and must never contain secrets. Keep the Supabase server key, Turnstile secret, Resend key and cron secret in server-only local or Vercel environment settings. Never commit them or pass them to browser components.
 
 In Supabase, enable Email authentication and enable **Confirm email**. Under **Authentication → URL Configuration**, use the public production URL as the Site URL and allow the exact `/auth/confirm` callback URL for each environment. For example, add `http://localhost:3000/auth/confirm` for local development and `https://www.grecybersec.co.uk/auth/confirm` for production.
 
@@ -106,9 +110,19 @@ The project is compatible with Vercel. Connect the GitHub repository, set `NEXT_
 
 For Cloudflare, point DNS to the deployment, enforce HTTPS/TLS, use a managed WAF and rate limits where appropriate, and review caching rules after deployment. Cloudflare complements but does not replace secure application code.
 
-## Future data and access control
+## Beyond the Firewall registration
 
-If persistent events or member administration becomes necessary, use Supabase/PostgreSQL with Row Level Security and least-privilege roles. An admin area must use server-side authorisation checks, CSRF-aware state changes, rate limits and preferably MFA. Do not expose a service-role key to the client.
+The site contains one event-specific flow for **Thursday 29 October 2026, 2:00–4:00 PM Europe/London**. The listing, event page, registration action and verification action all check the event end time on the server, so registration closes even if maintenance has not run.
+
+The form collects only full name, email and an explicit Yes or No photography preference. It verifies Cloudflare Turnstile on the server, rate-limits requests in Supabase, stores only a hash of each random verification token, and requires a user-initiated confirmation POST. Verified attendees receive a Resend confirmation with Google, Outlook and ICS calendar links. Duplicate and resend responses do not reveal whether an address is registered.
+
+Run the read-only checks in [`docs/event-registration-deployment.md`](docs/event-registration-deployment.md), then paste the complete [`supabase/migrations/20261021090000_event_registration.sql`](supabase/migrations/20261021090000_event_registration.sql) into the Supabase SQL Editor. The migration is transactional and rerunnable. It preserves existing rows and aborts on unknown or conflicting objects. Its private schema has RLS enabled with no public policies; only backend RPC execution is granted.
+
+The existing daily Vercel cron calls `/api/cron/event-maintenance` with `CRON_SECRET`. Cleanup is fixed to this event and permanently deletes its registration and photography data seven days after it ends. Expired pending tokens are invalidated sooner. The job is idempotent and does not delete other events.
+
+Required production settings are `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY`, `EVENT_EMAIL_FROM`, `CRON_SECRET`, and one server-only Supabase credential: `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SECRET_KEY`. An existing valid `SUPABASE_EVENT_WORKER_JWT` remains supported. `TURNSTILE_EXPECTED_HOSTNAME`, `EVENT_ORGANISER_NAME`, `EVENT_PRIVACY_CONTACT`, `EVENT_VERIFICATION_MINUTES`, and `EVENT_SECURITY_KEY` are optional.
+
+Automated tests use mocked HTTP and Supabase boundaries plus an isolated PGlite database. They do not send email or touch the live database. Verify one full registration with test attendee data after applying the migration and deploying.
 
 ## Contributing
 
