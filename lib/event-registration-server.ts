@@ -7,7 +7,8 @@ export function eventPublicConfig() {
   // The page, email, calendar and database migration share this confirmed date.
   const date = beyondFirewall.date;
   const times = londonEventTimes(date);
-  return times ? { date, ...times } : null;
+  if (!times) throw new Error("The fixed Beyond the Firewall event date is invalid.");
+  return { date, ...times };
 }
 
 function origin(value: string | undefined): URL | null {
@@ -44,7 +45,7 @@ export function eventRegistrationConfig() {
   const secret = process.env.TURNSTILE_SECRET_KEY;
   // Cloudflare's published test credentials must never open production registration.
   const testKeys = /^(?:1x|2x|3x)0{10,}/;
-  if (!event || !site || !credentials || !siteKey || !secret || !expectedHostname || expectedHostname !== site.hostname
+  if (!site || !credentials || !siteKey || !secret || !expectedHostname || expectedHostname !== site.hostname
     || (process.env.NODE_ENV === "production" && (testKeys.test(siteKey) || testKeys.test(secret)))
     || !process.env.RESEND_API_KEY || !emailFrom() || /[\r\n]/.test(emailFrom()!)
     || organiser.length > 160 || contact.length > 254

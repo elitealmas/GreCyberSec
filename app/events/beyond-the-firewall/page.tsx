@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { EventRegistrationForm } from "@/components/event-registration-form";
 import { PageHero } from "@/components/page-hero";
@@ -17,7 +16,6 @@ export default async function BeyondFirewallPage() {
   // Availability must follow the current time, including after an unchanged deployment.
   await connection();
   const event = eventPublicConfig();
-  if (!event) notFound();
   const config = eventRegistrationConfig();
   const open = eventIsOpen(event.end);
 

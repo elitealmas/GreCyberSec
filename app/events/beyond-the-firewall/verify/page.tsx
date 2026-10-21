@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { EventVerification } from "@/components/event-verification";
 import { PageHero } from "@/components/page-hero";
@@ -12,7 +11,6 @@ export const maxDuration = 60;
 export default async function VerifyEventPage() {
   await connection();
   const event = eventPublicConfig();
-  if (!event) notFound();
   const config = eventRegistrationConfig();
   return <>
     <PageHero eyebrow="Beyond the Firewall" title="Verify your email."><p>Confirm your registration for the guest speaker session.</p></PageHero>

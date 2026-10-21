@@ -11,16 +11,41 @@ export const beyondFirewall = {
   location: "Board Room, Dreadnought Building, University of Greenwich, London, SE10 9LS.",
 } as const;
 
+const londonClockFormatter = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Europe/London",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+});
+
+function londonOffsetMilliseconds(instant: Date): number | null {
+  const values = Object.fromEntries(
+    londonClockFormatter
+      .formatToParts(instant)
+      .filter(({ type }) => type !== "literal")
+      .map(({ type, value }) => [type, Number(value)]),
+  );
+  const { year, month, day, hour, minute, second } = values;
+  if ([year, month, day, hour, minute, second].some((value) => !Number.isInteger(value))) return null;
+  return Date.UTC(year, month - 1, day, hour, minute, second) - instant.getTime();
+}
+
 // 14:00 and 16:00 are never in the UK's daylight-saving transition gap.
 export function londonEventTimes(date: string): { start: Date; end: Date } | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
   const [year, month, day] = date.split("-").map(Number);
   const noon = new Date(Date.UTC(year, month - 1, day, 12));
   if (year < 2000 || year > 2100 || noon.getUTCFullYear() !== year || noon.getUTCMonth() !== month - 1 || noon.getUTCDate() !== day) return null;
-  const offset = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", timeZoneName: "shortOffset" }).formatToParts(noon).find((part) => part.type === "timeZoneName")?.value;
-  if (offset !== "GMT" && offset !== "GMT+1") return null;
-  const hours = offset === "GMT+1" ? 1 : 0;
-  return { start: new Date(Date.UTC(year, month - 1, day, 14 - hours)), end: new Date(Date.UTC(year, month - 1, day, 16 - hours)) };
+  const offset = londonOffsetMilliseconds(noon);
+  if (offset !== 0 && offset !== 60 * 60 * 1000) return null;
+  return {
+    start: new Date(Date.UTC(year, month - 1, day, 14) - offset),
+    end: new Date(Date.UTC(year, month - 1, day, 16) - offset),
+  };
 }
 
 export function eventDateLabel(date: Date): string {
