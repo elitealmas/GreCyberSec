@@ -4,6 +4,6 @@ const messages = {
 } as const;
 
 export function CourseMessage({ code }: { code?: string }) {
-  const message = code && code in messages ? messages[code as keyof typeof messages] : null;
+  const message = code && Object.hasOwn(messages, code) ? messages[code as keyof typeof messages] : null;
   return message ? <p className="auth-message" role="status">{message}</p> : null;
 }
