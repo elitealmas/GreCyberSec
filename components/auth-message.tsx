@@ -20,7 +20,7 @@ const messages = {
 } as const;
 
 export function AuthMessage({ code }: { code?: string }) {
-  const message = code && code in messages ? messages[code as keyof typeof messages] : null;
+  const message = code && Object.hasOwn(messages, code) ? messages[code as keyof typeof messages] : null;
   if (!message) return null;
   const isSuccess = code ? ["check-email", "reset-sent", "password-updated"].includes(code) : false;
   return <p className={isSuccess ? "auth-message auth-message-success" : "auth-message"} role="status">{message}</p>;
