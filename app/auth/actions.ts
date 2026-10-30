@@ -3,9 +3,10 @@
 import { redirect } from "next/navigation";
 import { validateCredentials, validateEmail, validateNewPassword } from "@/lib/auth-validation";
 import { registrationFailureMessage } from "@/lib/registration-errors";
+import { eventRateAllowed } from "@/lib/event-registration-server";
 import { getSiteUrl } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
-import { verifyTurnstileToken } from "@/lib/turnstile";
+import { turnstileExpectedHostname, verifyTurnstileToken } from "@/lib/turnstile";
 
 function go(path: string, message: string): never {
   redirect(`${path}?message=${message}`);
@@ -19,7 +20,8 @@ export async function register(formData: FormData) {
   }
 
   const token = formData.get("turnstileToken");
-  if (typeof token !== "string" || !(await verifyTurnstileToken(token, "register"))) {
+  const hostname = turnstileExpectedHostname();
+  if (!hostname || typeof token !== "string" || !(await verifyTurnstileToken(token, "register", hostname))) {
     go("/register", "turnstile-failed");
   }
 
@@ -48,7 +50,8 @@ export async function login(formData: FormData) {
   if (!credentials) go("/login", "invalid-login");
 
   const token = formData.get("turnstileToken");
-  if (typeof token !== "string" || !(await verifyTurnstileToken(token, "login"))) {
+  const hostname = turnstileExpectedHostname();
+  if (!hostname || typeof token !== "string" || !(await verifyTurnstileToken(token, "login", hostname))) {
     go("/login", "turnstile-failed");
   }
 
@@ -69,7 +72,18 @@ export async function requestPasswordReset(formData: FormData) {
   const email = validateEmail(formData);
   if (!email) go("/forgot-password", "invalid-email");
 
+  const token = formData.get("turnstileToken");
+  const hostname = turnstileExpectedHostname();
+  if (!hostname || typeof token !== "string" || !(await verifyTurnstileToken(token, "password-reset", hostname))) {
+    go("/forgot-password", "turnstile-failed");
+  }
+
   try {
+    // A valid, single-use challenge is required before a request can consume the
+    // per-address and global application limits.
+    if (!(await eventRateAllowed("password-reset", email))) {
+      go("/forgot-password", "reset-sent");
+    }
     const supabase = await createClient();
     await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: getSiteUrl("/auth/confirm?next=recovery"),

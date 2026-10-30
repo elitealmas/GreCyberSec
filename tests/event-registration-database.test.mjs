@@ -3,27 +3,33 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 
-const migrationUrl = new URL("../supabase/migrations/20261021090000_event_registration.sql", import.meta.url);
+const migrationUrls = [
+  new URL("../supabase/migrations/20261021090000_event_registration.sql", import.meta.url),
+  new URL("../supabase/migrations/20261030120000_security_hardening.sql", import.meta.url),
+];
 const fixedEnd = "2026-10-29T16:00:00Z";
 const hash = (character) => character.repeat(64);
 
 async function databaseAt(instant) {
   const db = await PGlite.create();
   await db.exec("create role anon; create role authenticated; create role service_role noinherit bypassrls;");
-  const migration = (await readFile(migrationUrl, "utf8")).replaceAll("clock_timestamp()", `timestamptz '${instant}'`);
-  await db.exec(migration);
-  return { db, migration };
+  const migrations = await Promise.all(migrationUrls.map(async (url) => (await readFile(url, "utf8")).replaceAll("clock_timestamp()", `timestamptz '${instant}'`)));
+  for (const migration of migrations) await db.exec(migration);
+  return { db, migrations };
 }
 
 test("event migration is rerunnable and keeps attendees behind RLS and backend-only RPCs", async (t) => {
-  const { db, migration } = await databaseAt("2026-10-21T12:00:00Z");
+  const { db, migrations } = await databaseAt("2026-10-21T12:00:00Z");
   t.after(() => db.close());
-  await db.exec(migration);
+  for (const migration of migrations) await db.exec(migration);
   const scalar = async (sql, params = []) => Object.values((await db.query(sql, params)).rows[0])[0];
 
   assert.equal(await scalar("select has_schema_privilege('anon', 'event_private', 'USAGE')"), false);
   assert.equal(await scalar("select has_function_privilege('authenticated', 'public.event_verify_registration(text,text,timestamptz)', 'EXECUTE')"), false);
   assert.equal(await scalar("select has_function_privilege('service_role', 'public.event_verify_registration(text,text,timestamptz)', 'EXECUTE')"), true);
+  assert.equal(await scalar("select has_function_privilege('gcs_event_worker', 'public.event_resend_pending_v2(text,text,text,timestamptz,timestamptz)', 'EXECUTE')"), true);
+  assert.equal(await scalar("select has_function_privilege('gcs_event_worker', 'public.event_resend_pending(text,text,text,timestamptz,timestamptz)', 'EXECUTE')"), false);
+  assert.equal(await scalar("select has_table_privilege('gcs_event_worker', 'event_private.registrations', 'SELECT')"), false);
   assert.equal(await scalar("select relrowsecurity from pg_class where oid = 'event_private.registrations'::regclass"), true);
 
   const bucket = hash("a");
@@ -43,13 +49,18 @@ test("event migration is rerunnable and keeps attendees behind RLS and backend-o
     [true, false],
   );
 
-  assert.equal(await register("Alice Updated", "Alice@Example.test", false, hash("d")), alice);
+  assert.equal(await register("Alice Updated", "Alice@Example.test", false, hash("d")), null);
   assert.equal(await scalar("select count(*)::int from event_private.registrations"), 2);
+  assert.equal(await scalar("select full_name from event_private.registrations where id = $1", [alice]), "Alice Example");
+  assert.equal(await scalar("select consent from event_private.photography_preferences where registration_id = $1", [alice]), true);
+  assert.equal(await scalar("select public.event_verify_registration('beyond-the-firewall', $1, $2)", [hash("b"), fixedEnd]), true);
   assert.equal(await scalar("select public.event_verify_registration('beyond-the-firewall', $1, $2)", [hash("b"), fixedEnd]), false);
-  assert.equal(await scalar("select public.event_verify_registration('beyond-the-firewall', $1, $2)", [hash("d"), fixedEnd]), true);
-  assert.equal(await scalar("select public.event_verify_registration('beyond-the-firewall', $1, $2)", [hash("d"), fixedEnd]), false);
   assert.equal(await scalar("select token_hash is null from event_private.registrations where id = $1", [alice]), true);
   assert.equal(await register("Alice Example", "Alice@Example.test", true, hash("e")), null);
+
+  const resend = await scalar("select public.event_resend_pending_v2('beyond-the-firewall', 'bob@example.test', $1, '2026-10-21T12:30:00Z', $2)", [hash("d"), fixedEnd]);
+  assert.deepEqual(resend, { email: "bob@example.test", full_name: "Bob Example", consent: false });
+  assert.equal(await scalar("select public.event_verify_registration('beyond-the-firewall', $1, $2)", [hash("c"), fixedEnd]), false);
 
   const claimed = (await db.query("select * from public.event_claim_emails('beyond-the-firewall')")).rows;
   assert.equal(claimed.length, 1);

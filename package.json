@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/auth-routing.test.mjs tests/password-validation.test.mjs tests/quiz-validation.test.mjs tests/registration-errors.test.mjs tests/events.test.mjs tests/beyond-firewall.test.mjs tests/event-registration-validation.test.mjs tests/event-registration-database.test.mjs tests/event-registration-server.test.mjs tests/message-rendering.test.mjs tests/session-cookies.test.mjs"
+    "test": "node --experimental-strip-types --test tests/auth-routing.test.mjs tests/auth-confirmation-boundary.test.mjs tests/password-validation.test.mjs tests/quiz-validation.test.mjs tests/registration-errors.test.mjs tests/events.test.mjs tests/beyond-firewall.test.mjs tests/event-registration-validation.test.mjs tests/event-registration-database.test.mjs tests/event-registration-server.test.mjs tests/quiz-database-security.test.mjs tests/contact-validation.test.mjs tests/message-rendering.test.mjs tests/session-cookies.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/oxanium": "^5.3.0",
@@ -27,7 +27,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
-    "eslint-config-next": "16.1.0",
+    "eslint-config-next": "16.4.3",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.7.0"
   }

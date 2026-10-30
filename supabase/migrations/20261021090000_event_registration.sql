@@ -204,9 +204,8 @@ begin
   if not found then return null; end if;
   insert into event_private.registrations as r (event_id, full_name, email, email_normalized, status, token_hash, token_expires_at)
   select p_event, p_name, p_email, p_normalized, 'pending', p_hash, least(p_expires, p_end) where clock_timestamp() < p_end
-  on conflict (event_id, email_normalized) do update set full_name = excluded.full_name, email = excluded.email,
-    status = 'pending', token_hash = excluded.token_hash, token_expires_at = excluded.token_expires_at, updated_at = clock_timestamp()
-  where r.status in ('pending', 'expired') and clock_timestamp() < p_end returning id into v_registration_id;
+  on conflict (event_id, email_normalized) do nothing
+  returning id into v_registration_id;
   if v_registration_id is not null then
     insert into event_private.photography_preferences (registration_id, consent, consent_version)
     values (v_registration_id, p_consent, '1')
@@ -331,7 +330,6 @@ begin
     for item in select signature from (values
       ('public.event_rate_limit(text,integer,integer)'),
       ('public.event_register_pending(text,text,text,text,boolean,text,timestamptz,timestamptz)'),
-      ('public.event_resend_pending(text,text,text,timestamptz,timestamptz)'),
       ('public.event_verify_registration(text,text,timestamptz)'), ('public.event_claim_emails(text)'),
       ('public.event_finish_email(uuid,boolean,uuid)'), ('public.event_cleanup(text,timestamptz,integer)')
     ) as supported(signature) loop

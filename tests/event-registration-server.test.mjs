@@ -52,7 +52,7 @@ function harness(options = {}) {
       }
       if (name === "event_rate_limit") return { data: true, error: null };
       if (name === "event_register_pending") return { data: "pending-id", error: null };
-      if (name === "event_resend_pending") return { data: "alice@example.org", error: null };
+      if (name === "event_resend_pending_v2") return { data: { email: "alice@example.org", full_name: "Alice Example", consent: false }, error: null };
       if (name === "event_verify_registration") return { data: true, error: null };
       if (name === "event_claim_emails") return { data: [], error: null };
       if (name === "event_finish_email") return { data: true, error: null };
@@ -134,6 +134,8 @@ test("No photography consent registers pending; only the token hash reaches Supa
   const body = JSON.parse(mail.init.body);
   assert.deepEqual(body.to, ["alice@example.org"]);
   assert.equal(body.subject, "Verify your registration — Beyond the Firewall");
+  assert.ok(body.text.includes("Name: Alice Example"));
+  assert.ok(body.text.includes("Photography consent: No"));
   const link = body.text.match(/https:\/\/events\.example\.org\/events\/beyond-the-firewall\/verify#[a-f0-9]{64}/)?.[0];
   assert.ok(link);
   const rawToken = new URL(link).hash.slice(1);
@@ -153,15 +155,19 @@ test("invalid inputs and failed Turnstile cannot create pending attendees", asyn
   }
   const h = harness({ fetch: ({ url }) => url.includes("cloudflare.com") ? Response.json({ success: false }) : undefined });
   assert.equal((await h.actions().registerForEvent(initialState, registration())).status, "turnstile");
+  assert.equal(rpcCalls(h, "event_rate_limit").length, 0);
   assert.equal(rpcCalls(h, "event_register_pending").length, 0);
   assert.equal(emailCalls(h).length, 0);
 });
 
-test("rate limiting stops registration before challenge verification or attendee writes", async () => {
+test("rate limiting runs only after a valid challenge and before attendee writes", async () => {
   const h = harness({ rpc: (name) => name === "event_rate_limit" ? { data: false, error: null } : undefined });
   assert.equal((await h.actions().registerForEvent(initialState, registration())).status, "rate-limited");
   assert.equal(rpcCalls(h, "event_register_pending").length, 0);
-  assert.equal(h.calls.filter((call) => call.kind === "fetch").length, 0);
+  const challenge = h.calls.find((call) => call.kind === "fetch" && call.url.includes("cloudflare.com"));
+  const limiter = rpcCalls(h, "event_rate_limit")[0];
+  assert.ok(challenge && limiter);
+  assert.ok(h.calls.indexOf(challenge) < h.calls.indexOf(limiter));
 });
 
 test("already registered addresses receive the same neutral response without a new email", async () => {
@@ -184,18 +190,20 @@ test("verification provider rejection and transport failure remain neutral and n
   }
 });
 
-test("resending rotates the pending hash and sends a verification link only for a pending recipient", async () => {
+test("resending rotates the pending hash and repeats immutable details for the recipient", async () => {
   const h = harness();
   const form = registration();
   assert.equal((await h.actions().resendEventVerification(initialState, form)).status, "sent");
-  const [resend] = rpcCalls(h, "event_resend_pending");
+  const [resend] = rpcCalls(h, "event_resend_pending_v2");
   const body = JSON.parse(emailCalls(h)[0].init.body);
+  assert.ok(body.text.includes("Name: Alice Example"));
+  assert.ok(body.text.includes("Photography consent: No"));
   const raw = body.text.match(/verify#([a-f0-9]{64})/)?.[1];
   assert.ok(raw);
   assert.equal(resend.params.p_hash, createHash("sha256").update(raw).digest("hex"));
   assert.equal(resend.params.p_event, "beyond-the-firewall");
   assert.equal(JSON.stringify(rpcCalls(h)).includes(raw), false);
-  const unknown = harness({ rpc: (name) => name === "event_resend_pending" ? { data: null, error: null } : undefined });
+  const unknown = harness({ rpc: (name) => name === "event_resend_pending_v2" ? { data: null, error: null } : undefined });
   assert.equal((await unknown.actions().resendEventVerification(initialState, form)).status, "sent");
   assert.equal(emailCalls(unknown).length, 0);
 });
@@ -203,6 +211,7 @@ test("resending rotates the pending hash and sends a verification link only for 
 test("verification submits a hash to the atomic RPC and only successful consumption starts confirmation delivery", async () => {
   const h = harness();
   assert.equal((await h.actions().verifyEventRegistration(initialState, verification())).status, "verified");
+  assert.equal(rpcCalls(h, "event_rate_limit").length, 1, "verification must not debit a shared global bucket");
   assert.deepEqual(rpcCalls(h, "event_verify_registration").map((call) => call.params), [{
     p_event: "beyond-the-firewall", p_hash: tokenHash, p_end: "2026-10-29T16:00:00.000Z",
   }]);
@@ -331,9 +340,10 @@ test("configuration defaults to the requested date and preserves the existing re
   assert.equal(client.args[2].auth.persistSession, false);
 });
 
-test("existing Supabase and sender environment aliases work without new setup flags or a custom worker token", async () => {
+test("broad Supabase key aliases remain a non-production migration fallback", async () => {
   for (const name of ["SUPABASE_SECRET_KEY", "SUPABASE_SERVICE_ROLE_KEY"]) {
     const h = harness({ env: {
+      NODE_ENV: "development",
       SUPABASE_EVENT_WORKER_JWT: undefined,
       NEXT_PUBLIC_SUPABASE_URL: undefined,
       SUPABASE_URL: "https://database.example.org",
@@ -358,13 +368,23 @@ test("existing Supabase and sender environment aliases work without new setup fl
     assert.equal(client.args[2].auth.persistSession, false);
     assert.equal(client.args[2].auth.autoRefreshToken, false);
     assert.match(h.server().eventBucket("registration", "alice@example.org"), /^[a-f0-9]{64}$/);
-    await h.server().sendVerificationEmail("alice@example.org", token, tokenHash, config);
+    await h.server().sendVerificationEmail("alice@example.org", token, tokenHash, config, { name: "Alice Example", consent: false });
     assert.equal(JSON.parse(emailCalls(h)[0].init.body).from, "Existing Sender <events@example.org>");
   }
   const anonAlias = harness({ env: { NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: undefined, NEXT_PUBLIC_SUPABASE_ANON_KEY: "existing-anon-key" } });
   assert.ok(anonAlias.server().eventRegistrationConfig());
   anonAlias.server().eventDatabase();
   assert.equal(anonAlias.calls.find((call) => call.kind === "client").args[1], "existing-anon-key");
+});
+
+test("production refuses broad database keys when the restricted worker token is missing", () => {
+  const h = harness({ env: {
+    SUPABASE_EVENT_WORKER_JWT: undefined,
+    SUPABASE_SECRET_KEY: "broad-key-must-not-be-used",
+    SUPABASE_SERVICE_ROLE_KEY: undefined,
+  } });
+  assert.equal(h.server().eventRegistrationConfig(), null);
+  assert.throws(() => h.server().eventDatabase(), /not configured/);
 });
 
 test("production rejects published Turnstile test credentials and untrusted origins", () => {
@@ -398,5 +418,5 @@ test("pending token expiry is capped at event end", async () => {
   assert.equal((await h.actions().registerForEvent(initialState, registration())).status, "sent");
   assert.equal(rpcCalls(h, "event_register_pending")[0].params.p_expires, "2026-10-29T16:00:00.000Z");
   assert.equal((await h.actions().resendEventVerification(initialState, registration())).status, "sent");
-  assert.equal(rpcCalls(h, "event_resend_pending")[0].params.p_expires, "2026-10-29T16:00:00.000Z");
+  assert.equal(rpcCalls(h, "event_resend_pending_v2")[0].params.p_expires, "2026-10-29T16:00:00.000Z");
 });

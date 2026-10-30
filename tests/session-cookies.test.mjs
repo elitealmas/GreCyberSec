@@ -24,7 +24,6 @@ async function sessionCookies(helper, nodeEnv) {
     const originalCookies = options.cookies;
     client = ssr[name](url, key, {
       ...options,
-      ...(name === "createBrowserClient" ? { isSingleton: false } : {}),
       global: {
         fetch: async (requestUrl) => {
           assert.equal(String(requestUrl), "https://cookies.example.invalid/auth/v1/token?grant_type=password");
@@ -56,7 +55,6 @@ async function sessionCookies(helper, nodeEnv) {
   function isolatedRequire(id) {
     if (id === "@supabase/ssr") return {
       createServerClient: factory("createServerClient"),
-      createBrowserClient: factory("createBrowserClient"),
     };
     if (id === "@/lib/supabase/config") return {
       getSupabaseConfig: () => ({ url: "https://cookies.example.invalid", publishableKey: "synthetic-publishable-key" }),
@@ -89,21 +87,21 @@ async function sessionCookies(helper, nodeEnv) {
   }
 }
 
-for (const helper of ["server", "proxy", "client"]) {
-  test(`${helper} sessions require HTTPS in production and retain existing cookie settings`, async () => {
+for (const helper of ["server", "proxy"]) {
+  test(`${helper} sessions are HttpOnly, same-site and HTTPS-only in production`, async () => {
     for (const cookie of await sessionCookies(helper, "production")) {
       assert.equal(cookie.options.secure, true);
       assert.equal(cookie.options.sameSite, "lax");
-      assert.equal(cookie.options.httpOnly, false);
+      assert.equal(cookie.options.httpOnly, true);
       assert.equal(cookie.options.path, "/");
     }
   });
 
-  test(`${helper} sessions continue to support local HTTP during development`, async () => {
+  test(`${helper} sessions remain HttpOnly while supporting local HTTP during development`, async () => {
     for (const cookie of await sessionCookies(helper, "development")) {
       assert.notEqual(cookie.options.secure, true);
       assert.equal(cookie.options.sameSite, "lax");
-      assert.equal(cookie.options.httpOnly, false);
+      assert.equal(cookie.options.httpOnly, true);
     }
   });
 }
