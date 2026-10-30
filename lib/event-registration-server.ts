@@ -24,6 +24,9 @@ function databaseCredentials() {
   const publicKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const worker = process.env.SUPABASE_EVENT_WORKER_JWT;
   if (worker) return url && publicKey && validWorkerToken(worker) ? { url, key: publicKey, worker } : null;
+  // Production must not give a public form a credential that can bypass every
+  // RLS policy in the project. Broad keys remain a local migration/test fallback.
+  if (process.env.NODE_ENV === "production") return null;
   const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
   return url && key ? { url, key, worker: undefined } : null;
 }
@@ -39,7 +42,7 @@ export function eventRegistrationConfig() {
   const retention = 7;
   const minutes = Number(process.env.EVENT_VERIFICATION_MINUTES || "30");
   const organiser = process.env.EVENT_ORGANISER_NAME?.trim() || "GreCyberSec";
-  const contact = process.env.EVENT_PRIVACY_CONTACT?.trim() || "/contact";
+  const contact = process.env.EVENT_PRIVACY_CONTACT?.trim() || "/contact#privacy-request";
   const expectedHostname = process.env.TURNSTILE_EXPECTED_HOSTNAME?.trim() || site?.hostname;
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   const secret = process.env.TURNSTILE_SECRET_KEY;
@@ -81,9 +84,13 @@ export function eventBucket(scope: string, value: string) {
   return createHmac("sha256", key).update(`event:${beyondFirewall.id}:${scope}:${value}`).digest("hex");
 }
 
-export async function eventRateAllowed(scope: string, normalized: string): Promise<boolean> {
+export async function eventRateAllowed(scope: string, normalized: string, includeGlobal = true): Promise<boolean> {
   const db = eventDatabase();
-  for (const [bucket, limit] of [[eventBucket(scope, normalized), 3], [eventBucket(scope, "global"), 150]] as const) {
+  const limits: ReadonlyArray<readonly [string, number]> = [
+    [eventBucket(scope, normalized), 3],
+    ...(includeGlobal ? [[eventBucket(scope, "global"), 150] as const] : []),
+  ];
+  for (const [bucket, limit] of limits) {
     const { data, error } = await db.rpc("event_rate_limit", { p_bucket: bucket, p_max: limit, p_seconds: 900 });
     if (error) throw new Error("Event rate limiter unavailable");
     if (data !== true) return false;
@@ -100,9 +107,10 @@ async function sendEmail(to: string, subject: string, text: string, idempotencyK
   return response.ok;
 }
 
-export async function sendVerificationEmail(email: string, token: string, tokenHash: string, config: NonNullable<ReturnType<typeof eventRegistrationConfig>>) {
+export async function sendVerificationEmail(email: string, token: string, tokenHash: string, config: NonNullable<ReturnType<typeof eventRegistrationConfig>>, details: { name: string; consent: boolean }) {
   const link = `${config.siteUrl}/events/beyond-the-firewall/verify#${token}`;
-  return sendEmail(email, "Verify your registration — Beyond the Firewall", `Please verify your email to complete your registration for ${beyondFirewall.title}.\n\nOpen this link and press Confirm registration:\n${link}\n\nThis link expires after ${config.minutes} minutes or when the event ends, whichever comes first. If you did not request this, you can ignore this email.\n\n${config.organiser}`, `event-verify/${tokenHash}`);
+  const photography = details.consent ? "Yes" : "No";
+  return sendEmail(email, "Verify your registration — Beyond the Firewall", `Please verify your email to complete your registration for ${beyondFirewall.title}.\n\nRegistration details\nName: ${details.name}\nPhotography consent: ${photography}\n\nOpen this link and press Confirm registration:\n${link}\n\nOnly confirm if the details above are correct. This link expires after ${config.minutes} minutes or when the event ends, whichever comes first. If you did not request this, ignore the email and the registration will not be confirmed.\n\n${config.organiser}`, `event-verify/${tokenHash}`);
 }
 
 export async function sendPendingConfirmations(config: NonNullable<ReturnType<typeof eventRegistrationConfig>>) {

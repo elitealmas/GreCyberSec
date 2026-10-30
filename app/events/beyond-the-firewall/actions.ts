@@ -17,16 +17,16 @@ export async function registerForEvent(_state: EventActionState, formData: FormD
   const input = validEventRegistration(formData);
   if (!input) return result("invalid");
   try {
-    if (!(await eventRateAllowed("registration", input.normalized))) return result("rate-limited");
     const turnstile = formData.get("turnstileToken");
     if (typeof turnstile !== "string" || !(await verifyTurnstileToken(turnstile, "event-register", config.expectedHostname))) return result("turnstile");
+    if (!(await eventRateAllowed("registration", input.normalized))) return result("rate-limited");
     const token = randomBytes(32).toString("hex");
     const tokenHash = hash(token);
     const db = eventDatabase();
     const { data: id, error } = await db.rpc("event_register_pending", { p_event: beyondFirewall.id, p_name: input.name, p_email: input.email, p_normalized: input.normalized, p_consent: input.consent, p_hash: tokenHash, p_expires: new Date(Math.min(Date.now() + config.minutes * 60_000, config.end.getTime())).toISOString(), p_end: config.end.toISOString() });
     if (error) throw new Error("Event registration database failure");
     if (id) {
-      try { if (!(await sendVerificationEmail(input.email, token, tokenHash, config))) console.error("Event verification email not accepted"); }
+      try { if (!(await sendVerificationEmail(input.email, token, tokenHash, config, { name: input.name, consent: input.consent }))) console.error("Event verification email not accepted"); }
       catch { console.error("Event verification email delivery unavailable"); }
     }
     // The same response is returned for existing verified or cancelled addresses.
@@ -43,16 +43,19 @@ export async function resendEventVerification(_state: EventActionState, formData
   const input = validEventEmail(formData.get("email"));
   if (!input) return result("invalid");
   try {
-    if (!(await eventRateAllowed("registration", input.normalized))) return result("rate-limited");
     const turnstile = formData.get("turnstileToken");
     if (typeof turnstile !== "string" || !(await verifyTurnstileToken(turnstile, "event-register", config.expectedHostname))) return result("turnstile");
+    if (!(await eventRateAllowed("registration", input.normalized))) return result("rate-limited");
     const token = randomBytes(32).toString("hex");
     const tokenHash = hash(token);
     const db = eventDatabase();
-    const { data: recipient, error } = await db.rpc("event_resend_pending", { p_event: beyondFirewall.id, p_normalized: input.normalized, p_hash: tokenHash, p_expires: new Date(Math.min(Date.now() + config.minutes * 60_000, config.end.getTime())).toISOString(), p_end: config.end.toISOString() });
+    const { data, error } = await db.rpc("event_resend_pending_v2", { p_event: beyondFirewall.id, p_normalized: input.normalized, p_hash: tokenHash, p_expires: new Date(Math.min(Date.now() + config.minutes * 60_000, config.end.getTime())).toISOString(), p_end: config.end.toISOString() });
     if (error) throw new Error("Event resend database failure");
+    const recipient = data && typeof data === "object" && typeof data.email === "string" && typeof data.full_name === "string" && typeof data.consent === "boolean"
+      ? { email: data.email, name: data.full_name, consent: data.consent }
+      : null;
     if (recipient) {
-      try { if (!(await sendVerificationEmail(recipient, token, tokenHash, config))) console.error("Event verification email not accepted"); }
+      try { if (!(await sendVerificationEmail(recipient.email, token, tokenHash, config, recipient))) console.error("Event verification email not accepted"); }
       catch { console.error("Event verification email delivery unavailable"); }
     }
     return result("sent");
@@ -69,7 +72,8 @@ export async function verifyEventRegistration(_state: EventActionState, formData
   if (typeof token !== "string" || !/^[a-f0-9]{64}$/.test(token)) return result("expired");
   try {
     const tokenHash = hash(token);
-    if (!(await eventRateAllowed("verification", tokenHash))) return result("rate-limited");
+    // A random token must never be able to consume a shared, event-wide bucket.
+    if (!(await eventRateAllowed("verification", tokenHash, false))) return result("rate-limited");
     const { data, error } = await eventDatabase().rpc("event_verify_registration", { p_event: beyondFirewall.id, p_hash: tokenHash, p_end: config.end.toISOString() });
     if (error) throw new Error("Event verification database failure");
     if (data !== true) return result("expired");

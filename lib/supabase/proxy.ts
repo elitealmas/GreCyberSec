@@ -7,7 +7,12 @@ export async function updateSession(request: NextRequest, requestHeaders = reque
   let response = NextResponse.next({ request: { headers: requestHeaders } });
   const { url, publishableKey } = getSupabaseConfig();
   const supabase = createServerClient(url, publishableKey, {
-    cookieOptions: { secure: process.env.NODE_ENV === "production" },
+    cookieOptions: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    },
     cookies: {
       getAll() {
         return request.cookies.getAll();

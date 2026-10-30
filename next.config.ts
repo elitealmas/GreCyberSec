@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
         { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
         { key: "Cache-Control", value: "private, no-store" },
       ] },
+      { source: "/auth/confirm", headers: [
+        { key: "Referrer-Policy", value: "no-referrer" },
+        { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        { key: "Cache-Control", value: "private, no-store" },
+      ] },
     ];
   },
 };
