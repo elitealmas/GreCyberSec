@@ -1,0 +1,10 @@
+{
+  "name": "@grecybersec/eslint-glob",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Glob operations used by the GreCyberSec ESLint dependency tree",
+  "main": "index.cjs",
+  "dependencies": {
+    "glob": "14.0.6"
+  }
+}
