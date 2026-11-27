@@ -20,8 +20,7 @@ test("does not use an arbitrary callback next value as a redirect destination", 
 
 test("matches every protected member route before rendering", () => {
   assert.equal(protectedRouteRedirect("/dashboard"), "/login");
-  assert.equal(protectedRouteRedirect("/courses"), "/login");
-  assert.equal(protectedRouteRedirect("/courses/networking/quiz"), "/login");
+  assert.equal(protectedRouteRedirect("/courses"), null);
   assert.equal(protectedRouteRedirect("/update-password"), "/forgot-password?message=confirmation-error");
   assert.equal(protectedRouteRedirect("/about"), null);
 });

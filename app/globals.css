@@ -137,7 +137,7 @@ button, input, textarea, select, summary { font: inherit; }
 /* Any of these panels renders as a raised window with a title bar drawn
    in CSS. Put data-title="..." on the element to label the title bar. */
 
-.win, .card, .notice-panel, .course-card, .course-summary, .course-sidebar, .course-module, .lesson-content, .quiz-question, .quiz-answer, .quiz-result, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status {
+.win, .card, .notice-panel, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status {
   position: relative;
   border: 0;
   border-radius: 0;
@@ -145,7 +145,7 @@ button, input, textarea, select, summary { font: inherit; }
   padding: calc(var(--titlebar-h) + 1.25rem) 1.35rem 1.35rem;
   box-shadow: var(--bevel-out), 4px 4px 0 var(--hard-shadow);
 }
-:is(.win, .card, .notice-panel, .course-card, .course-summary, .course-sidebar, .course-module, .lesson-content, .quiz-question, .quiz-answer, .quiz-result, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status)::before {
+:is(.win, .card, .notice-panel, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status)::before {
   position: absolute;
   top: 3px; right: 3px; left: 3px;
   height: var(--titlebar-h);
@@ -164,7 +164,7 @@ button, input, textarea, select, summary { font: inherit; }
   transition: color .2s ease;
 }
 /* Window controls: three bevelled squares drawn with gradients. */
-:is(.win, .card, .notice-panel, .course-card, .course-summary, .course-sidebar, .course-module, .lesson-content, .quiz-question, .quiz-answer, .quiz-result, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status)::after {
+:is(.win, .card, .notice-panel, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status)::after {
   position: absolute;
   top: calc(3px + (var(--titlebar-h) - 1rem) / 2);
   right: calc(3px + .25rem);
@@ -183,7 +183,7 @@ button, input, textarea, select, summary { font: inherit; }
     linear-gradient(var(--face-raised), var(--face-raised)) 2.55rem 0 / 1.05rem 1rem no-repeat;
 }
 /* "Active window": the title bar lights up amber on hover / focus-within. */
-:is(.win, .card, .notice-panel, .course-card, .course-summary, .course-sidebar, .course-module, .lesson-content, .quiz-question, .quiz-answer, .quiz-result, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status):is(:hover, :focus-within, .win-active)::before {
+:is(.win, .card, .notice-panel, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status):is(:hover, :focus-within, .win-active)::before {
   background: linear-gradient(90deg, var(--title-a), var(--title-b));
   color: var(--title-text);
 }
@@ -381,13 +381,15 @@ details[open] > .menu-button { box-shadow: var(--bevel-in); background: var(--fi
 /* ---------- Cards & content panels ---------- */
 
 .card { transition: transform .18s cubic-bezier(.2, .8, .2, 1), box-shadow .18s cubic-bezier(.2, .8, .2, 1); }
-.card:hover, .course-card:hover { transform: translate(-2px, -2px); box-shadow: var(--bevel-out), 6px 6px 0 var(--hard-shadow); }
+.card:hover { transform: translate(-2px, -2px); box-shadow: var(--bevel-out), 6px 6px 0 var(--hard-shadow); }
 .notice-panel { padding: calc(var(--titlebar-h) + clamp(1.2rem, 3vw, 1.75rem)) clamp(1.2rem, 3vw, 1.75rem) clamp(1.2rem, 3vw, 1.75rem); }
 .notice-block { border-left: 4px solid var(--accent); background: var(--field); padding: .8rem 1rem; box-shadow: var(--bevel-in); }
 
 .pill { display: inline-flex; align-items: center; width: fit-content; background: var(--face-raised); padding: .2rem .55rem; color: var(--copy); font-family: var(--font-mono); font-size: .72rem; font-weight: 500; line-height: 1.3; letter-spacing: .03em; box-shadow: var(--bevel-out); }
 .event-date { width: fit-content; margin-bottom: 0; background: var(--accent); padding: .2rem .5rem; color: var(--accent-ink); font-family: var(--font-mono); font-size: .82rem; font-weight: 700; letter-spacing: .06em; line-height: 1.2; white-space: nowrap; }
 .event-speaker-placeholder { display: grid; width: 6rem; height: 6rem; flex: 0 0 auto; place-items: center; background: var(--field); color: var(--accent-text); font-family: var(--font-mono); font-size: .72rem; font-weight: 700; letter-spacing: .12em; box-shadow: var(--bevel-in); }
+.term-badge { display: inline-flex; align-items: center; gap: .45rem; width: fit-content; background: var(--field); padding: .25rem .55rem; color: var(--copy); font-family: var(--font-mono); font-size: .76rem; font-weight: 700; letter-spacing: .03em; box-shadow: var(--bevel-in); }
+.term-badge::before { width: .5rem; height: .5rem; flex: 0 0 auto; content: ""; background: var(--success); }
 .avatar { display: grid; place-items: center; width: 2.8rem; height: 2.8rem; background: var(--field); color: var(--accent-text); font-family: var(--font-display); font-weight: 700; box-shadow: var(--bevel-in); }
 
 /* Retro monitor icon (replaces the old robot illustrations) */
@@ -453,15 +455,8 @@ details[open] > .menu-button { box-shadow: var(--bevel-in); background: var(--fi
 .page-loader-status { display: grid; justify-items: center; gap: .75rem; padding-top: calc(var(--titlebar-h) + 2rem); padding-bottom: 2rem; text-align: center; }
 .page-loader-status > p { max-width: 32rem; color: var(--muted); font-size: .9rem; }
 .page-loader-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-.page-loader-grid > div, .page-loader-lesson, .page-loader-quiz { background: var(--face); box-shadow: var(--bevel-out); }
+.page-loader-grid > div { background: var(--face); box-shadow: var(--bevel-out); }
 .page-loader-grid > div { min-height: 13rem; }
-.page-loader-lesson { display: grid; max-width: 52rem; gap: 1rem; margin-inline: auto; padding: clamp(1.5rem, 4vw, 2.5rem); }
-.page-loader-lesson span, .page-loader-quiz span { display: block; height: .75rem; background: var(--field); box-shadow: var(--bevel-in); animation: skeleton-blink 1.4s steps(2, end) infinite; }
-.page-loader-lesson span:nth-child(1) { width: 46%; height: 2.2rem; }
-.page-loader-lesson span:nth-child(3) { width: 84%; }
-.page-loader-lesson span:nth-child(4) { width: 68%; }
-.page-loader-quiz { display: grid; max-width: 48rem; gap: 1.25rem; margin-inline: auto; padding: 1.5rem; }
-.page-loader-quiz span { height: 7rem; }
 
 /* ---------- Boot-screen intro ---------- */
 
@@ -484,44 +479,6 @@ details[open] > .menu-button { box-shadow: var(--bevel-in); background: var(--fi
 .site-intro-skip { position: absolute; z-index: 2; top: 1.2rem; right: 1.2rem; border: 1px solid #ffb000; background: transparent; color: #ffb000; padding: .45rem .8rem; font-family: var(--font-mono); font-size: .76rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: background-color .12s ease, color .12s ease; }
 .site-intro-skip:hover, .site-intro-skip:focus-visible { background: #ffb000; color: #140d00; }
 .site-intro-leaving { pointer-events: none; animation: crt-off .45s cubic-bezier(.7, 0, .9, .4) forwards; }
-
-/* ---------- Courses, lessons & quizzes ---------- */
-
-.course-card { display: flex; min-height: 22rem; flex-direction: column; transition: transform .18s cubic-bezier(.2, .8, .2, 1), box-shadow .18s cubic-bezier(.2, .8, .2, 1); }
-.course-progress { color: var(--muted); font-family: var(--font-mono); font-size: .82rem; }
-.course-progress progress { display: block; width: 100%; height: 1.15rem; margin-top: .55rem; appearance: none; border: 0; background: var(--field); padding: 3px; box-shadow: var(--bevel-in); }
-.course-progress progress::-webkit-progress-bar { background: transparent; }
-.course-progress progress::-webkit-progress-value { background: repeating-linear-gradient(90deg, var(--accent) 0 .6rem, transparent .6rem .75rem); }
-.course-progress progress::-moz-progress-bar { background: repeating-linear-gradient(90deg, var(--accent) 0 .6rem, transparent .6rem .75rem); }
-.course-summary, .course-sidebar { height: fit-content; }
-.lesson-status { flex: 0 0 auto; padding: .1rem .3rem; color: var(--accent-text); font-family: var(--font-mono); font-size: .78rem; font-weight: 700; text-decoration: none; transition: background-color .12s ease, color .12s ease; }
-a.lesson-status:hover { background: var(--accent); color: var(--accent-ink); }
-.lesson-status-complete { color: var(--success); }
-.lesson-content { padding: calc(var(--titlebar-h) + clamp(1.5rem, 4vw, 2.5rem)) clamp(1.25rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 2.5rem); }
-.lesson-copy { max-width: 45rem; color: var(--copy); font-size: 1rem; line-height: 1.85; }
-.lesson-copy p + p { margin-top: 1.25rem; }
-.lesson-copy h2 { margin-top: 2.6rem; font-size: 1.5rem; line-height: 1.3; }
-.lesson-copy h2:first-child { margin-top: 0; }
-.lesson-copy h3 { margin-top: 1.8rem; font-size: 1.12rem; font-weight: 700; }
-.lesson-copy ul, .lesson-copy ol { margin-top: 1rem; padding-left: 1.4rem; }
-.lesson-copy ul { list-style: square; }
-.lesson-copy ol { list-style: decimal; }
-.lesson-copy li + li { margin-top: .5rem; }
-.lesson-copy code { background: var(--field); padding: .08rem .3rem; color: var(--accent-text); font-family: var(--font-mono); font-size: .88em; box-shadow: inset 0 0 0 1px var(--line); }
-.lesson-copy pre { overflow-x: auto; margin-top: 1.25rem; background: #0a0803; padding: 1rem; box-shadow: var(--bevel-in); }
-.lesson-copy pre code { padding: 0; background: transparent; box-shadow: none; color: #ffcf6b; }
-.lesson-callout { margin-top: 1.5rem; border-left: 4px solid var(--accent); background: var(--field); padding: .9rem 1rem; color: var(--copy); box-shadow: var(--bevel-in); }
-.lesson-table-wrap { overflow-x: auto; margin-top: 1.5rem; background: var(--field); padding: 2px; box-shadow: var(--bevel-in); }
-.lesson-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-.lesson-table th, .lesson-table td { border: 1px solid var(--line); padding: .7rem .8rem; text-align: left; vertical-align: top; }
-.lesson-table th { background: var(--face-raised); color: var(--heading); font-family: var(--font-mono); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
-.quiz-option { display: flex; gap: .7rem; align-items: flex-start; background: var(--field); padding: .8rem .9rem; color: var(--copy); cursor: pointer; box-shadow: var(--bevel-in); transition: background-color .12s ease, color .12s ease; }
-.quiz-option:hover { background: var(--accent-tint); }
-.quiz-option:has(input:checked) { background: var(--accent); color: var(--accent-ink); }
-.quiz-option input { accent-color: var(--accent-ink); margin-top: .25rem; }
-.quiz-feedback { width: fit-content; margin-top: 1rem; border-left: 4px solid var(--error); background: var(--field); padding: .45rem .7rem; color: var(--copy); font-size: .85rem; box-shadow: var(--bevel-in); }
-.quiz-feedback-correct { border-left-color: var(--success); }
-.quiz-feedback-review { border-left-color: var(--muted); }
 
 /* ---------- Keyframes ---------- */
 
@@ -547,5 +504,5 @@ a.lesson-status:hover { background: var(--accent); color: var(--accent-ink); }
 @media (prefers-reduced-motion: reduce) {
   .site-intro { display: none; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  .button:not(:disabled):hover, .nav-login:hover, .card:hover, .course-card:hover, .partner-card:hover, .pcap-packet:hover { transform: none; }
+  .button:not(:disabled):hover, .nav-login:hover, .card:hover, .partner-card:hover, .pcap-packet:hover { transform: none; }
 }

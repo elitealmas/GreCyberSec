@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/supabase/config";
 
-const routes = ["", "/about", "/events", "/events/beyond-the-firewall", "/projects", "/committee", "/resources", "/contact", "/terms", "/privacy", "/cookies", "/disclaimer"];
+const routes = ["", "/about", "/events", "/events/beyond-the-firewall", "/projects", "/people", "/contact", "/terms", "/privacy", "/cookies", "/disclaimer"];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return routes.map((route) => ({
