@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { EventRegistrationForm } from "@/components/event-registration-form";
+import { PacketCapture } from "@/components/packet-capture";
 import { PageHero } from "@/components/page-hero";
 import { beyondFirewall, eventDateLabel, eventIsOpen } from "@/lib/beyond-firewall";
+import { speakerLinkedIn } from "@/lib/beyond-firewall-gallery";
 import { eventPublicConfig, eventRegistrationConfig } from "@/lib/event-registration-server";
 
 export const metadata: Metadata = {
@@ -38,6 +40,7 @@ export default async function BeyondFirewallPage() {
           <p className="eyebrow">Guest speaker</p>
           <h2 className="mt-3 text-2xl font-semibold text-heading">{beyondFirewall.speakerName}</h2>
           <p className="mt-2 leading-7 text-body">{beyondFirewall.speakerRole}</p>
+          <a className="text-link mt-3" href={speakerLinkedIn} target="_blank" rel="noopener noreferrer">LinkedIn <span aria-hidden="true">↗</span></a>
         </div>
       </div>
       <div className="min-w-0">
@@ -50,5 +53,6 @@ export default async function BeyondFirewallPage() {
         </div>}
       </div>
     </section>
+    <PacketCapture />
   </>;
 }

@@ -137,7 +137,7 @@ button, input, textarea, select, summary { font: inherit; }
 /* Any of these panels renders as a raised window with a title bar drawn
    in CSS. Put data-title="..." on the element to label the title bar. */
 
-.win, .card, .notice-panel, .course-card, .course-summary, .course-sidebar, .course-module, .lesson-content, .quiz-question, .quiz-answer, .quiz-result, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status, .partnership-panel {
+.win, .card, .notice-panel, .course-card, .course-summary, .course-sidebar, .course-module, .lesson-content, .quiz-question, .quiz-answer, .quiz-result, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status {
   position: relative;
   border: 0;
   border-radius: 0;
@@ -145,7 +145,7 @@ button, input, textarea, select, summary { font: inherit; }
   padding: calc(var(--titlebar-h) + 1.25rem) 1.35rem 1.35rem;
   box-shadow: var(--bevel-out), 4px 4px 0 var(--hard-shadow);
 }
-:is(.win, .card, .notice-panel, .course-card, .course-summary, .course-sidebar, .course-module, .lesson-content, .quiz-question, .quiz-answer, .quiz-result, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status, .partnership-panel)::before {
+:is(.win, .card, .notice-panel, .course-card, .course-summary, .course-sidebar, .course-module, .lesson-content, .quiz-question, .quiz-answer, .quiz-result, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status)::before {
   position: absolute;
   top: 3px; right: 3px; left: 3px;
   height: var(--titlebar-h);
@@ -164,7 +164,7 @@ button, input, textarea, select, summary { font: inherit; }
   transition: color .2s ease;
 }
 /* Window controls: three bevelled squares drawn with gradients. */
-:is(.win, .card, .notice-panel, .course-card, .course-summary, .course-sidebar, .course-module, .lesson-content, .quiz-question, .quiz-answer, .quiz-result, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status, .partnership-panel)::after {
+:is(.win, .card, .notice-panel, .course-card, .course-summary, .course-sidebar, .course-module, .lesson-content, .quiz-question, .quiz-answer, .quiz-result, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status)::after {
   position: absolute;
   top: calc(3px + (var(--titlebar-h) - 1rem) / 2);
   right: calc(3px + .25rem);
@@ -183,7 +183,7 @@ button, input, textarea, select, summary { font: inherit; }
     linear-gradient(var(--face-raised), var(--face-raised)) 2.55rem 0 / 1.05rem 1rem no-repeat;
 }
 /* "Active window": the title bar lights up amber on hover / focus-within. */
-:is(.win, .card, .notice-panel, .course-card, .course-summary, .course-sidebar, .course-module, .lesson-content, .quiz-question, .quiz-answer, .quiz-result, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status, .partnership-panel):is(:hover, :focus-within, .win-active)::before {
+:is(.win, .card, .notice-panel, .course-card, .course-summary, .course-sidebar, .course-module, .lesson-content, .quiz-question, .quiz-answer, .quiz-result, .auth-card, .contact-qr-panel, .legal-robot-card, .page-loader-status):is(:hover, :focus-within, .win-active)::before {
   background: linear-gradient(90deg, var(--title-a), var(--title-b));
   color: var(--title-text);
 }
@@ -342,20 +342,36 @@ details[open] > .menu-button { box-shadow: var(--bevel-in); background: var(--fi
 .hero-branding-status { display: inline-flex; align-items: center; gap: .45rem; }
 .hero-branding-status > span { width: .5rem; height: .5rem; flex: 0 0 auto; background: var(--success); }
 
-/* ---------- Partnership ---------- */
+/* ---------- Partners ---------- */
 
 .partnership-section { border-block: 1px solid var(--line); background: var(--desk-alt); }
-.partnership-panel { display: grid; gap: clamp(2rem, 5vw, 4rem); padding: calc(var(--titlebar-h) + clamp(1.5rem, 4vw, 3rem)) clamp(1.25rem, 4vw, 3rem) clamp(1.5rem, 4vw, 3rem); }
-.partnership-lockup { margin-top: .8rem; color: var(--accent-text); font-family: var(--font-display); font-size: clamp(1.05rem, 2vw, 1.35rem); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-.partnership-lockup span { padding-inline: .3rem; color: var(--heading); }
-.partnership-benefits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; margin: 0; padding: 0; list-style: none; }
-.partnership-benefits li { position: relative; display: grid; gap: .35rem; background: var(--field); padding: .85rem .95rem .85rem 1.15rem; box-shadow: var(--bevel-in); transition: background-color .15s ease; }
-.partnership-benefits li::before { position: absolute; top: 0; bottom: 0; left: 0; width: 4px; content: ""; background: var(--accent); transform: scaleY(0); transform-origin: bottom; transition: transform .2s cubic-bezier(.2, .8, .2, 1); }
-.partnership-benefits li:hover { background: var(--accent-tint); }
-.partnership-benefits li:hover::before { transform: scaleY(1); }
-.partnership-benefits strong { color: var(--heading); font-size: .88rem; }
-.partnership-benefits span { color: var(--muted); font-size: .8rem; line-height: 1.5; }
-@media (min-width: 1024px) { .partnership-panel { grid-template-columns: minmax(0, 1.1fr) minmax(23rem, .9fr); align-items: center; } }
+.partner-grid { display: grid; gap: 1.25rem; margin: 0; padding: 0; list-style: none; }
+.partner-card { display: grid; height: 100%; gap: 1.25rem; background: var(--face-raised); padding: 1rem; box-shadow: var(--bevel-out); transition: transform .18s cubic-bezier(.2, .8, .2, 1), box-shadow .18s cubic-bezier(.2, .8, .2, 1); }
+.partner-card:hover { transform: translate(-2px, -2px); box-shadow: var(--bevel-out), 5px 5px 0 var(--hard-shadow); }
+/* Logos sit on a fixed dark "screen" so their original colours work in both themes. */
+.partner-logo { position: relative; display: grid; height: 10rem; place-items: center; overflow: hidden; background: #0a0803; padding: 1.25rem; box-shadow: var(--bevel-in); }
+.partner-logo::after { position: absolute; inset: 0; content: ""; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .22) 0 1px, transparent 1px 3px); }
+.partner-logo img { width: 100%; height: 100%; max-height: 9rem; object-fit: contain; filter: grayscale(.15); transition: filter .2s ease, transform .2s cubic-bezier(.2, .8, .2, 1); }
+.partner-card:hover .partner-logo img { filter: none; transform: scale(1.04); }
+.partner-copy { display: flex; flex-direction: column; align-items: flex-start; }
+.partner-copy .button { margin-top: auto; }
+.partner-copy p { margin-bottom: 1.25rem; }
+@media (min-width: 768px) { .partner-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .partner-card { grid-template-columns: 12rem minmax(0, 1fr); align-items: stretch; } .partner-logo { height: auto; min-height: 11rem; } }
+
+/* ---------- Packet capture gallery ---------- */
+
+.pcap-filter { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; background: var(--field); padding: .45rem .7rem; font-family: var(--font-mono); font-size: .8rem; color: var(--muted); box-shadow: var(--bevel-in); }
+.pcap-filter code { color: var(--success); }
+.pcap-grid { display: grid; gap: 1.25rem; margin: 0; padding: 0; list-style: none; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr)); }
+.pcap-packet { display: flex; height: 100%; flex-direction: column; background: var(--face-raised); padding: 3px; color: var(--copy); text-decoration: none; box-shadow: var(--bevel-out); transition: transform .18s cubic-bezier(.2, .8, .2, 1), box-shadow .18s cubic-bezier(.2, .8, .2, 1); }
+.pcap-meta { display: flex; justify-content: space-between; gap: .5rem; background: linear-gradient(90deg, var(--title-idle-a), var(--title-idle-b)); padding: .25rem .5rem; color: var(--title-idle-text); font-family: var(--font-mono); font-size: .72rem; font-weight: 700; letter-spacing: .04em; transition: color .15s ease; }
+.pcap-photo { display: block; overflow: hidden; aspect-ratio: 4 / 5; margin-top: 3px; background: #000; box-shadow: var(--bevel-in); padding: 2px; }
+.pcap-photo img { display: block; width: 100%; height: 100%; object-fit: cover; filter: sepia(.35) saturate(.85) contrast(1.05); transition: filter .25s ease, transform .35s cubic-bezier(.2, .8, .2, 1); }
+.pcap-route { padding: .6rem .6rem 0; color: var(--accent-text); font-family: var(--font-mono); font-size: .76rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.pcap-info { padding: .3rem .6rem .7rem; font-size: .9rem; line-height: 1.45; }
+.pcap-packet:hover, .pcap-packet:focus-visible { transform: translate(-3px, -3px); box-shadow: var(--bevel-out), 5px 5px 0 var(--hard-shadow); }
+.pcap-packet:hover .pcap-meta, .pcap-packet:focus-visible .pcap-meta { background: linear-gradient(90deg, var(--title-a), var(--title-b)); color: var(--title-text); }
+.pcap-packet:hover .pcap-photo img, .pcap-packet:focus-visible .pcap-photo img { filter: none; transform: scale(1.04); }
 
 /* ---------- Page hero / sections ---------- */
 
@@ -525,12 +541,11 @@ a.lesson-status:hover { background: var(--accent); color: var(--accent-ink); }
   .page-loader-grid > div:not(:first-child) { display: none; }
   .button { width: 100%; }
   .button .retro-loader { min-width: 0; }
-  .partnership-benefits { grid-template-columns: 1fr; }
   .event-speaker-placeholder { width: 4.5rem; height: 4.5rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .site-intro { display: none; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  .button:not(:disabled):hover, .nav-login:hover, .card:hover, .course-card:hover { transform: none; }
+  .button:not(:disabled):hover, .nav-login:hover, .card:hover, .course-card:hover, .partner-card:hover, .pcap-packet:hover { transform: none; }
 }
