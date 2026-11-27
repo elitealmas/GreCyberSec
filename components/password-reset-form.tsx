@@ -28,6 +28,6 @@ export function PasswordResetForm({ siteKey }: { siteKey: string }) {
     <div className="turnstile-widget"><Turnstile siteKey={siteKey} options={{ action: "password-reset", theme: "dark", size: "flexible", responseField: false }} onSuccess={(nextToken) => { setToken(nextToken); setVerificationError(false); setWidgetError(false); }} onExpire={() => setToken(null)} onTimeout={() => setToken(null)} onError={() => { setToken(null); setWidgetError(true); }} onUnsupported={() => { setToken(null); setWidgetError(true); }} /></div>
     {widgetError && <p className="form-error" role="alert">Security verification could not load. Refresh the page and try again.</p>}
     {verificationError && <p className="form-error" role="alert">Please complete the security verification and try again.</p>}
-    <FormSubmitButton className="button button-primary w-fit" disabled={!token} pendingLabel="Sending reset link…">Send reset link <span aria-hidden="true">→</span></FormSubmitButton>
+    <FormSubmitButton className="button button-primary w-fit" disabled={!token} pendingLabel="Sending reset link…">Send reset link <span className="button-arrow" aria-hidden="true">→</span></FormSubmitButton>
   </form>;
 }

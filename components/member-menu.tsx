@@ -69,16 +69,16 @@ export function MemberMenu() {
 
   return <div className="member-menu" ref={menuRef}>
     <button aria-controls="member-menu-panel" aria-expanded={open} aria-haspopup="menu" className="member-menu-trigger" onClick={() => setOpen((current) => !current)} type="button">
-      <span className="member-menu-robot" aria-hidden="true"><i /><b><em /><em /></b><strong /></span>
+      <span className="member-menu-icon" aria-hidden="true" />
       <span className="sr-only">Open account menu</span>
     </button>
     <div className={open ? "member-menu-panel member-menu-panel-open" : "member-menu-panel"} id="member-menu-panel" role="menu">
       <p className="member-menu-title">Member controls</p>
-      <Link className="member-menu-link" href="/dashboard" onClick={() => setOpen(false)} role="menuitem">Dashboard <span aria-hidden="true">→</span></Link>
+      <Link className="member-menu-link" href="/dashboard" onClick={() => setOpen(false)} role="menuitem">Dashboard <span className="button-arrow" aria-hidden="true">→</span></Link>
       <div className="member-menu-preferences" aria-label="Display preferences">
         <button aria-checked={darkMode} className="member-menu-option" onClick={toggleDarkMode} role="switch" type="button"><span>Dark mode</span><i className={darkMode ? "preference-toggle preference-toggle-on" : "preference-toggle"} aria-hidden="true"><b /></i></button>
       </div>
-      <form action={logout} className="member-menu-signout"><FormSubmitButton className="member-menu-signout-button" pendingLabel="Signing out…">Sign out <span aria-hidden="true">→</span></FormSubmitButton></form>
+      <form action={logout} className="member-menu-signout"><FormSubmitButton className="member-menu-signout-button" pendingLabel="Signing out…">Sign out <span className="button-arrow" aria-hidden="true">→</span></FormSubmitButton></form>
     </div>
   </div>;
 }

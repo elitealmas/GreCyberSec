@@ -30,6 +30,6 @@ export function RegisterForm({ siteKey }: { siteKey: string }) {
     <div className="turnstile-widget"><Turnstile siteKey={siteKey} options={{ action: "register", theme: "dark", size: "flexible" }} onSuccess={(nextToken) => { setToken(nextToken); setVerificationError(false); setWidgetError(false); }} onExpire={() => setToken(null)} onError={() => { setToken(null); setWidgetError(true); }} /></div>
     {widgetError && <p className="form-error" role="alert">Security verification could not load. Refresh the page and try again.</p>}
     {verificationError && <p className="form-error" role="alert">Please complete the security verification and try again.</p>}
-    <FormSubmitButton className="button button-primary w-fit" disabled={!token} pendingLabel="Creating your account…">Create account <span aria-hidden="true">→</span></FormSubmitButton>
+    <FormSubmitButton className="button button-primary w-fit" disabled={!token} pendingLabel="Creating your account…">Create account <span className="button-arrow" aria-hidden="true">→</span></FormSubmitButton>
   </form>;
 }

@@ -39,7 +39,7 @@ function SecurityCheck({ siteKey, pending, resend = false }: { siteKey: string; 
       <button className="text-link mt-2" type="button" onClick={() => { setToken(null); setFailed(false); setAttempt(attempt + 1); }}>Retry security check</button>
     </div>}
     <button className="button button-primary w-full" type="submit" disabled={!token || pending}>
-      {pending ? "Sending…" : resend ? "Resend verification email" : "Send verification email"} <span aria-hidden="true">→</span>
+      {pending ? "Sending…" : resend ? "Resend verification email" : "Send verification email"} <span className="button-arrow" aria-hidden="true">→</span>
     </button>
     <noscript><p className="form-error">Enable JavaScript to complete the security check and register.</p></noscript>
   </>;
@@ -68,8 +68,8 @@ export function EventRegistrationForm({ siteKey, organiser, contact, retention }
 
   if (showResend) return <div className="card min-w-0" id="registration">
     <p className="eyebrow">Check your inbox</p>
-    <h2 className="mt-3 text-2xl font-semibold text-white">Resend verification</h2>
-    <p className="mt-3 text-sm leading-6 text-slate-300">Use the email address from your registration. Requesting another email replaces your previous verification link.</p>
+    <h2 className="mt-3 text-2xl font-semibold text-heading">Resend verification</h2>
+    <p className="mt-3 text-sm leading-6 text-body">Use the email address from your registration. Requesting another email replaces your previous verification link.</p>
     <form action={resendAction} className="mt-5 grid gap-4" aria-busy={resendPending}>
       <div>
         <label className="form-label" htmlFor="resend-email">Email address</label>
@@ -83,8 +83,8 @@ export function EventRegistrationForm({ siteKey, organiser, contact, retention }
 
   return <div className="card min-w-0" id="registration">
     <p className="eyebrow">Reserve your place</p>
-    <h2 className="mt-3 text-2xl font-semibold text-white">Register for the talk.</h2>
-    <p className="mt-2 text-sm leading-6 text-slate-300">Confirm your email to complete your registration.</p>
+    <h2 className="mt-3 text-2xl font-semibold text-heading">Register for the talk.</h2>
+    <p className="mt-2 text-sm leading-6 text-body">Confirm your email to complete your registration.</p>
     <form action={action} className="mt-5 grid gap-4" aria-busy={pending}>
       <div>
         <label className="form-label" htmlFor="event-name">Full name</label>
@@ -95,15 +95,15 @@ export function EventRegistrationForm({ siteKey, organiser, contact, retention }
         <input className="form-input" id="event-email" name="email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} value={email} onChange={(event) => setEmail(event.target.value)} required />
       </div>
       <fieldset aria-describedby="photography-description" className="grid gap-2">
-        <legend className="form-label">Photography consent <span className="font-normal text-slate-400">(choose one)</span></legend>
-        <p id="photography-description" className="text-sm leading-6 text-slate-300">May we use identifiable photographs of you for event reporting and promotion?</p>
+        <legend className="form-label">Photography consent <span className="font-normal text-muted">(choose one)</span></legend>
+        <p id="photography-description" className="text-sm leading-6 text-body">May we use identifiable photographs of you for event reporting and promotion?</p>
         <div className="grid grid-cols-2 gap-3">
           <label className="quiz-option items-center"><input type="radio" name="photographyConsent" value="yes" checked={consent === "yes"} onChange={() => setConsent("yes")} required /><span>Yes</span></label>
           <label className="quiz-option items-center"><input type="radio" name="photographyConsent" value="no" checked={consent === "no"} onChange={() => setConsent("no")} required /><span>No</span></label>
         </div>
-        <p className="text-xs leading-5 text-slate-400">You are welcome to attend whichever option you choose.</p>
+        <p className="text-xs leading-5 text-muted">You are welcome to attend whichever option you choose.</p>
       </fieldset>
-      <p className="text-xs leading-5 text-slate-400">{organiser} uses these details to manage your registration, send event emails and respect your photography choice. Photography may take place; choosing No does not affect registration or attendance. Event records are scheduled for deletion {retention} days after the talk. {contact.startsWith("/") ? <Link className="text-link" href={contact}>Contact us</Link> : <>Contact: {contact}</>}. <Link className="text-link" href="/privacy">Privacy notice</Link>.</p>
+      <p className="text-xs leading-5 text-muted">{organiser} uses these details to manage your registration, send event emails and respect your photography choice. Photography may take place; choosing No does not affect registration or attendance. Event records are scheduled for deletion {retention} days after the talk. {contact.startsWith("/") ? <Link className="text-link" href={contact}>Contact us</Link> : <>Contact: {contact}</>}. <Link className="text-link" href="/privacy">Privacy notice</Link>.</p>
       <Status status={state.status} />
       {state.status !== "sent" && <SecurityCheck key={state.version} siteKey={siteKey} pending={pending} />}
     </form>

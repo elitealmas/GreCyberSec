@@ -24,29 +24,29 @@ export default async function BeyondFirewallPage() {
     <section className="site-shell grid gap-8 py-12 lg:grid-cols-[1fr_.9fr] lg:items-start sm:py-16">
       <div className="min-w-0">
         <p className="eyebrow">Industry insights · Career pathways · Live Q&amp;A</p>
-        <h2 className="mt-4 text-3xl font-semibold text-white">A closer look at the world behind the firewall.</h2>
-        <p className="mt-5 leading-8 text-slate-300">{beyondFirewall.description}</p>
+        <h2 className="mt-4 text-3xl font-semibold text-heading">A closer look at the world behind the firewall.</h2>
+        <p className="mt-5 leading-8 text-body">{beyondFirewall.description}</p>
         <div className="card mt-7">
           <p className="eyebrow">Event details</p>
-          <dl className="mt-4 grid gap-4 text-slate-300">
-            <div><dt className="font-semibold text-white">Date</dt><dd><time dateTime={beyondFirewall.date}>{eventDateLabel(event.start)}</time></dd></div>
-            <div><dt className="font-semibold text-white">Time</dt><dd><time dateTime={event.start.toISOString()}>2:00 PM</time> – <time dateTime={event.end.toISOString()}>4:00 PM</time> (Europe/London)</dd></div>
-            <div><dt className="font-semibold text-white">Venue</dt><dd>{beyondFirewall.location}</dd></div>
+          <dl className="mt-4 grid gap-4 text-body">
+            <div><dt className="font-semibold text-heading">Date</dt><dd><time dateTime={beyondFirewall.date}>{eventDateLabel(event.start)}</time></dd></div>
+            <div><dt className="font-semibold text-heading">Time</dt><dd><time dateTime={event.start.toISOString()}>2:00 PM</time> – <time dateTime={event.end.toISOString()}>4:00 PM</time> (Europe/London)</dd></div>
+            <div><dt className="font-semibold text-heading">Venue</dt><dd>{beyondFirewall.location}</dd></div>
           </dl>
         </div>
         <div className="card mt-5">
           <p className="eyebrow">Guest speaker</p>
-          <h2 className="mt-3 text-2xl font-semibold text-white">{beyondFirewall.speakerName}</h2>
-          <p className="mt-2 leading-7 text-slate-300">{beyondFirewall.speakerRole}</p>
+          <h2 className="mt-3 text-2xl font-semibold text-heading">{beyondFirewall.speakerName}</h2>
+          <p className="mt-2 leading-7 text-body">{beyondFirewall.speakerRole}</p>
         </div>
       </div>
       <div className="min-w-0">
         {!open ? <div className="notice-panel">
-          <h2 className="text-2xl font-semibold text-white">This event has ended.</h2>
-          <p className="mt-4 leading-7 text-slate-300">Registration is now closed. <Link className="text-link" href="/events">Explore upcoming events</Link>.</p>
+          <h2 className="text-2xl font-semibold text-heading">This event has ended.</h2>
+          <p className="mt-4 leading-7 text-body">Registration is now closed. <Link className="text-link" href="/events">Explore upcoming events</Link>.</p>
         </div> : config ? <EventRegistrationForm siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} organiser={config.organiser} contact={config.contact} retention={config.retention} /> : <div className="notice-panel">
-          <h2 className="text-2xl font-semibold text-white">Registration is temporarily unavailable.</h2>
-          <p className="mt-4 leading-7 text-slate-300">Please try again later or <Link className="text-link" href="/contact">contact GreCyberSec</Link>.</p>
+          <h2 className="text-2xl font-semibold text-heading">Registration is temporarily unavailable.</h2>
+          <p className="mt-4 leading-7 text-body">Please try again later or <Link className="text-link" href="/contact">contact GreCyberSec</Link>.</p>
         </div>}
       </div>
     </section>

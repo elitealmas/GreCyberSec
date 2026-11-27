@@ -12,5 +12,5 @@ export default async function ForgotPasswordPage({ searchParams }: { searchParam
   if (!isSupabaseConfigured()) return <AuthShell eyebrow="Password reset" title="Reset your password"><AuthMessage code="configuration" /></AuthShell>;
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   if (!siteKey) return <AuthShell eyebrow="Password reset" title="Reset your password"><AuthMessage code="turnstile-unavailable" /></AuthShell>;
-  return <AuthShell eyebrow="Password reset" title="Reset your password"><p className="mt-4 text-slate-300">Enter your email address and we’ll send instructions if an account exists for it.</p><AuthMessage code={message} /><PasswordResetForm siteKey={siteKey} /><p className="mt-6 text-sm text-slate-400"><Link className="footer-link" href="/login">Back to sign in</Link></p></AuthShell>;
+  return <AuthShell eyebrow="Password reset" title="Reset your password"><p className="mt-4 text-body">Enter your email address and we’ll send instructions if an account exists for it.</p><AuthMessage code={message} /><PasswordResetForm siteKey={siteKey} /><p className="mt-6 text-sm text-muted"><Link className="footer-link" href="/login">Back to sign in</Link></p></AuthShell>;
 }
