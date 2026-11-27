@@ -17,5 +17,5 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   if (data?.claims) redirect("/dashboard");
-  return <AuthShell eyebrow="Member access" title="Sign in to GreCyberSec" aside={<LoginRobot />}><p className="mt-4 text-slate-300">Use your confirmed email address and password.</p><AuthMessage code={message} /><LoginForm siteKey={siteKey} /><p className="mt-6 text-sm text-slate-400"><Link className="footer-link" href="/forgot-password">Forgot your password?</Link> <span aria-hidden="true">·</span> <Link className="footer-link" href="/register">Create an account</Link></p></AuthShell>;
+  return <AuthShell eyebrow="Member access" title="Sign in to GreCyberSec" aside={<LoginRobot />}><p className="mt-4 text-body">Use your confirmed email address and password.</p><AuthMessage code={message} /><LoginForm siteKey={siteKey} /><p className="mt-6 text-sm text-muted"><Link className="footer-link" href="/forgot-password">Forgot your password?</Link> <span aria-hidden="true">·</span> <Link className="footer-link" href="/register">Create an account</Link></p></AuthShell>;
 }

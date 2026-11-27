@@ -21,13 +21,13 @@ export default async function ConfirmAuthPage({ searchParams }: { searchParams: 
   if (!hasCode && !hasTokenHash) redirect(confirmationFailurePath);
 
   return <AuthShell eyebrow="Email security" title="Confirm this request">
-    <p className="mt-4 leading-7 text-slate-300">For your protection, email links do not change your account on page load. Press the button to continue.</p>
+    <p className="mt-4 leading-7 text-body">For your protection, email links do not change your account on page load. Press the button to continue.</p>
     <form action={confirmAuth} className="mt-8">
       {hasCode && <input name="code" type="hidden" value={code} />}
       {hasTokenHash && <input name="tokenHash" type="hidden" value={tokenHash} />}
       {type && <input name="type" type="hidden" value={type} />}
       {nextValue === "recovery" && <input name="next" type="hidden" value="recovery" />}
-      <FormSubmitButton className="button button-primary w-fit" pendingLabel="Confirming…">Confirm and continue <span aria-hidden="true">→</span></FormSubmitButton>
+      <FormSubmitButton className="button button-primary w-fit" pendingLabel="Confirming…">Confirm and continue <span className="button-arrow" aria-hidden="true">→</span></FormSubmitButton>
     </form>
   </AuthShell>;
 }

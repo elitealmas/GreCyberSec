@@ -29,6 +29,6 @@ export function LoginForm({ siteKey }: { siteKey: string }) {
     <div className="turnstile-widget"><Turnstile siteKey={siteKey} options={{ action: "login", theme: "dark", size: "flexible" }} onSuccess={(nextToken) => { setToken(nextToken); setVerificationError(false); setWidgetError(false); }} onExpire={() => setToken(null)} onError={() => { setToken(null); setWidgetError(true); }} /></div>
     {widgetError && <p className="form-error" role="alert">Security verification could not load. Refresh the page and try again.</p>}
     {verificationError && <p className="form-error" role="alert">Please complete the security verification and try again.</p>}
-    <FormSubmitButton className="button button-primary w-fit" disabled={!token} pendingLabel="Signing you in…">Sign in <span aria-hidden="true">→</span></FormSubmitButton>
+    <FormSubmitButton className="button button-primary w-fit" disabled={!token} pendingLabel="Signing you in…">Sign in <span className="button-arrow" aria-hidden="true">→</span></FormSubmitButton>
   </form>;
 }

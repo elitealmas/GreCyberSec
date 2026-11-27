@@ -19,8 +19,8 @@ export function PrivateContactForm({ siteKey }: { siteKey: string }) {
 
   if (state.status === "sent") return <div className="notice-panel mt-8">
     <p className="eyebrow">Request sent privately</p>
-    <h3 className="mt-3 text-2xl font-semibold text-white">The committee mailbox has it.</h3>
-    <p className="mt-4 leading-7 text-slate-300">We may reply to verify your identity before acting on a data request.</p>
+    <h3 className="mt-3 text-2xl font-semibold text-heading">The committee mailbox has it.</h3>
+    <p className="mt-4 leading-7 text-body">We may reply to verify your identity before acting on a data request.</p>
   </div>;
 
   return <PrivateContactFields key={state.version} siteKey={siteKey} state={state} action={action} pending={pending} />;
