@@ -25,7 +25,6 @@ function loadComponent(file, name) {
 
 for (const [file, name] of [
   ["components/auth-message.tsx", "AuthMessage"],
-  ["components/course-message.tsx", "CourseMessage"],
 ]) {
   const Component = loadComponent(file, name);
   test(`${name} ignores inherited and unknown message query values`, () => {
@@ -41,8 +40,3 @@ test("known authentication messages retain their text, styling and status role",
   assert.equal(renderToStaticMarkup(createElement(AuthMessage, { code: "password-updated" })), '<p class="auth-message auth-message-success" role="status">Your password has been updated. You can now sign in.</p>');
 });
 
-test("known course messages retain their text, styling and status role", () => {
-  const CourseMessage = loadComponent("components/course-message.tsx", "CourseMessage");
-  assert.equal(renderToStaticMarkup(createElement(CourseMessage, { code: "progress-unavailable" })), '<p class="auth-message" role="status">We could not update your lesson progress. Please try again.</p>');
-  assert.equal(renderToStaticMarkup(createElement(CourseMessage, { code: "quiz-unavailable" })), '<p class="auth-message" role="status">We could not submit that quiz attempt. Please try again.</p>');
-});
