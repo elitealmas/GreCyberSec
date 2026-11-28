@@ -8,5 +8,5 @@ export function NavigationLink({ href, children, className = "nav-link" }: { hre
   const pathname = usePathname();
   const isCurrent = href === "/" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
-  return <Link className={className} href={href} aria-current={isCurrent ? "page" : undefined}>{children}</Link>;
+  return <Link className={className} href={href} aria-current={isCurrent ? "page" : undefined} onClick={(event) => event.currentTarget.closest("details")?.removeAttribute("open")}>{children}</Link>;
 }
